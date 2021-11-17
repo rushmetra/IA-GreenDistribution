@@ -50,6 +50,7 @@ solucoes(T,Q,S) :- findall(T,Q,S).
 cliente(1, ‘Rua do Meio’).
 cliente(2, ‘Rua do Verde’).
 cliente(3, ‘Rua do Amarelo’).
+cliente(4, 'Rua do Azul').
 
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
