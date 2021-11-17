@@ -21,9 +21,9 @@
 
 :- op( 900,xfy,'::' ).
 :- dynamic cliente/2.
-:- dynamic estafeta/2.
+:- dynamic estafeta/3.
 :- dynamic encomenda/3.
-:- dynamic entrega/6.
+:- dynamic entrega/10.
 
 solucoes(T,Q,S) :- findall(T,Q,S).
 
