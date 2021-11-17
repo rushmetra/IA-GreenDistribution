@@ -20,19 +20,20 @@ Ruas:
 
 Cliente: 
  - indica o prazo entrega
- - classifica a entrega (0-5)
+ - classifica a entrega (Ranking 0-5 estrelas)
 
 Encomenda: 
  - peso 
  - volume
 
-Custo do serviço:
+Custo do serviço de entrega:
  - depende da encomenda, prazo e meio de transporte.
 
 
 cliente: #IdCliente, Morada -> {V,F}
-estafeta: #IdEstafeta, Nome-> {V,F}
-entrega: Data, #IdEntrega, #IdCliente, #IdEstafeta, , MeioTransporte, Custo  -> {V,F}
+estafeta: #IdEstafeta, Ranking, Nome-> {V,F}
+encomenda: Peso, Volume, #IdEncomenda -> {V,F}
+entrega: Data, Prazo, HoraInicio, HoraFim, #IdEntrega, #IdCliente, #IdEstafeta, Pontuacao, MeioTransporte, Custo  -> {V,F}
 
 
 
