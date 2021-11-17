@@ -32,7 +32,7 @@ Custo do serviço de entrega:
 
 cliente: #IdCliente, Morada -> {V,F}
 estafeta: #IdEstafeta, Ranking, Nome-> {V,F}
-encomenda: Peso, Volume, #IdEncomenda -> {V,F}
+encomenda: #IdEncomenda, Peso, Volume-> {V,F}
 entrega: Data, Prazo, HoraInicio, HoraFim, #IdEntrega, #IdCliente, #IdEstafeta, Pontuacao, MeioTransporte, Custo  -> {V,F}
 
 
