@@ -64,7 +64,7 @@ cliente(4, 'Rua do Amarelo').
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Estafeta ---------------- - - - - - - - - - -  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-% Estafeta: #idEstafeta, Nome  -> {V,F}
+% Estafeta: #idEstafeta, Nome -> {V,F}
 
 estafeta(0, 4.1 ,'Daniel').
 estafeta(1, 3.9 ,'Nuno').
@@ -103,9 +103,10 @@ inserir(Termo) :- retract(Termo), !, fail.
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Extensao do predicado que permite a evolucao do conhecimento
+% solucoes(Invariante,+Termo::Invariante,Lista),
 
-evolucao( Termo ) :- solucoes(Invariante,+Termo::Invariante,Lista),
-                     inserir(Termo),
+evolucao( Termo ) :- solucoes(,,Lista),
+		     inserir(Termo),
                      teste(Lista).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
@@ -146,6 +147,53 @@ veiculos(['Bicicleta','Mota','Carro']).
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 1. identificar estafeta que utilizou mais vezes um meio de transporte mais ecológico   -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
+
+getEntregasEstafeta(estafeta(Id, _,_), [entrega(_, _, _, _, IdEstafeta, _,  _)|T], R) :-
+					Id == IdEstafeta,
+					append(R,[entrega(_, _, _, _, IdEstafeta, _,  _)], R1)
+					getEntregasEstafeta(estafeta(Id, _,_), T, R1).
+
+
+
+calcularEcoEstafeta(Estafeta, [NB, NM|T]):- 
+		
+		
+
+
+
+
+identificarEstafetaEco():-
+	
+		NB is calculaBicicleta(Estafeta, [Entrega|T]),
+		NM is calculaMota(Estafeta, [Entrega|T]),
+		Sol is NB + NM.
+			
+
+
+calculaBicicleta(Estafeta, [Entrega|T], Sol):-
+
+calculaMota(Estafeta, [Entrega|T], Sol):-
+
+
+
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+% Concatenar uma lista
+append([ ], L, L).
+append([H|L1], L2, [H|L3]):- append(L1, L2, L3).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
