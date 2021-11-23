@@ -14,7 +14,6 @@
 
 :- set_prolog_flag(discontiguous_warnings, off).
 :- set_prolog_flag(single_var_warnings, off).
-:- set_prolog_flag(unknown, fail).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % SICStus PROLOG: definicoes iniciais
@@ -56,10 +55,10 @@ solucoes(T,Q,S) :- findall(T,Q,S).
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Cliente: #idCliente, Morada -> {V,F}
 
-cliente(1, ‘Rua do Meio’).
-cliente(2, ‘Rua do Verde’).
-cliente(3, ‘Rua do Amarelo’).
-cliente(4, ‘Rua do Amarelo’).
+cliente(1, 'Rua do Meio').
+cliente(2, 'Rua do Verde').
+cliente(3, 'Rua do Amarelo').
+cliente(4, 'Rua do Amarelo').
 
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
@@ -67,10 +66,10 @@ cliente(4, ‘Rua do Amarelo’).
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Estafeta: #idEstafeta, Nome  -> {V,F}
 
-estafeta(0, 4.1 ,‘Daniel’).
-estafeta(1, 3.9 ,‘Nuno’).
-estafeta(2, 3.5 ,‘Guilherme’).
-estafeta(3, 2.3 ,‘Rodrigo’).
+estafeta(0, 4.1 ,'Daniel').
+estafeta(1, 3.9 ,'Nuno').
+estafeta(2, 3.5 ,'Guilherme').
+estafeta(3, 2.3 ,'Rodrigo').
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Encomenda --------------- - - - - - - - - - -  -  -  -  -   -
@@ -87,11 +86,11 @@ encomenda(5, 7.4, 30).
 %-------- Entrega --------------- - - - - - - - - - -  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Entrega: #Data, Prazo, #IdEntrega, #IdCliente, #IdEstafeta, Pontuacao, MeioTransporte, Custo  -> {V,F}
-entrega(data(13, 12, 2021), 0, 1, 2, 4, ‘Bicicleta’,  19.99). % # 0 = imediato
-entrega(data(13, 12, 2021), 24.0, 1, 2, 4, ‘Bicicleta’,  19.99).
-entrega(data(16, 11, 2021), 2.0, 2, 9, 3, ‘Mota’, 29.99).
-entrega(data(18, 09, 2021), 6.0, 3, 5, 2, ‘Carro’, 39.99).
-entrega(data(19, 05, 2021), 16.0, 4, 8, 4, ‘Bicicleta’, 19.99).
+entrega(data(13, 12, 2021), 0, 1, 2, 4, 'Bicicleta',  19.99). % # 0 = imediato
+entrega(data(13, 12, 2021), 24.0, 1, 2, 4, 'Bicicleta',  19.99).
+entrega(data(16, 11, 2021), 2.0, 2, 9, 3, 'Mota', 29.99).
+entrega(data(18, 09, 2021), 6.0, 3, 5, 2, 'Carro', 39.99).
+entrega(data(19, 05, 2021), 16.0, 4, 8, 4, 'Bicicleta', 19.99).
 
 
 
@@ -105,7 +104,8 @@ inserir(Termo) :- retract(Termo), !, fail.
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Extensao do predicado que permite a evolucao do conhecimento
 
-evolucao( Termo ) :- inserir(Termo),
+evolucao( Termo ) :- solucoes(Invariante,+Termo::Invariante,Lista),
+                     inserir(Termo),
                      teste(Lista).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
@@ -120,13 +120,13 @@ registaEntrega(Data, Prazo, IdE, IdC, IdEst, P, Mt, C) :-
              evolucao(entrega(Data, Prazo, IdE, IdC, IdEst, P, Mt, C)).
 
 % Registar Cliente
-registaCliente(IdCliente, Morada) :- evolucao(cliente(IdCliente, Morada)).
+registaCliente(IdCliente, Morada) :- inserir(cliente(IdCliente, Morada)).
 
 % Registar Estafeta
-registaEstafeta(IdEstafeta, Nome) :- evolucao(estafeta(IdEstafeta, Nome)).
+registaEstafeta(IdEstafeta, Nome) :- inserir(estafeta(IdEstafeta, Nome)).
 
 % Registar Encomenda
-registaEncomenda(IdEncomenda, Peso, Volume) :- evolucao(encomenda(IdEncomenda, Peso, Volume)).
+registaEncomenda(IdEncomenda, Peso, Volume) :- inserir(encomenda(IdEncomenda, Peso, Volume)).
 
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
@@ -146,3 +146,6 @@ veiculos(['Bicicleta','Mota','Carro']).
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 1. identificar estafeta que utilizou mais vezes um meio de transporte mais ecológico   -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
+
+
+
