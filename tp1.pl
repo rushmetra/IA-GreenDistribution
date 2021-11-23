@@ -190,6 +190,9 @@ query3(IdEst,L) :- solucoes(cliente(IdC,Morada), (estafeta(IdEst,_,_),cliente(Id
     diferentes(X,L).
 
 
+
+
+
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Obter elemento num indice de uma lista
 
