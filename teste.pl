@@ -15,11 +15,18 @@ estafeta(2, 3.5 ,'Guilherme').
 estafeta(3, 2.3 ,'Rodrigo').
 estafeta(4, 5.0,'Nunão').
 
+
+
+
 entrega(data(13, 12, 2021), 0, 1, 2, 4, 'Bicicleta',  19.99). % # 0 = imediato
 entrega(data(13, 12, 2021), 24.0, 1, 2, 4, 'Bicicleta',  19.99).
 entrega(data(19, 05, 2021), 16.0, 4, 8, 4, 'Bicicleta', 19.99).
 entrega(data(16, 11, 2021), 2.0, 2, 9, 3, 'Mota', 29.99).
 entrega(data(18, 09, 2021), 6.0, 3, 5, 2, 'Carro', 39.99).
+
+veiculo(1,'Bicicleta').
+veiculo(2,'Mota').
+veiculo(3,'Carro').
 
 
 
@@ -36,6 +43,14 @@ encomenda(5, 7.4, 30).
 
 entregas_de_estafeta(IdEst,R) :- 
     solucoes(entrega(Data,Prazo,IdEntrega,IdC,IdEst,Mt,Custo), (estafeta(IdEst,_,_),entrega(Data,Prazo,IdEntrega,IdC,IdEst,Mt,Custo)), R).
+
+
+indexOf([Element|_], Element, 0):- !.
+indexOf([_|Tail], Element, Index):-
+  indexOf(Tail, Element, Index1),
+  !,
+  Index is Index1+1.
+
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Concatenar uma lista
