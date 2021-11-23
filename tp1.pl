@@ -1,4 +1,3 @@
-
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % SIST. REPR. CONHECIMENTO E RACIOCINIO - LEI/3 - FASE 1
 
@@ -70,6 +69,7 @@ estafeta(0, 4.1 ,'Daniel').
 estafeta(1, 3.9 ,'Nuno').
 estafeta(2, 3.5 ,'Guilherme').
 estafeta(3, 2.3 ,'Rodrigo').
+estafeta(4, 5.0,'Nunão').
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Encomenda --------------- - - - - - - - - - -  -  -  -  -   -
@@ -80,7 +80,6 @@ encomenda(0, 2.5, 10).
 encomenda(1, 5.2, 15).
 encomenda(2, 19.1, 30).
 encomenda(5, 7.4, 30).
-
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Entrega --------------- - - - - - - - - - -  -  -  -  -   -
@@ -148,31 +147,10 @@ veiculos(['Bicicleta','Mota','Carro']).
 %---------- 1. identificar estafeta que utilizou mais vezes um meio de transporte mais ecológico   -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 
-getEntregasEstafeta(estafeta(Id, _,_), [entrega(_, _, _, _, IdEstafeta, _,  _)|T], R) :-
-					Id == IdEstafeta,
-					append(R,[entrega(_, _, _, _, IdEstafeta, _,  _)], R1)
-					getEntregasEstafeta(estafeta(Id, _,_), T, R1).
+entregas_de_estafeta(IdEst,R) :- 
+    solucoes(entrega(Data,Prazo,IdEntrega,IdC,IdEst,Mt,Custo), (estafeta(IdEst,_,_),entrega(Data,Prazo,IdEntrega,IdC,IdEst,Mt,Custo)), R).
 
 
-
-calcularEcoEstafeta(Estafeta, [NB, NM|T]):- 
-		
-		
-
-
-
-
-identificarEstafetaEco():-
-	
-		NB is calculaBicicleta(Estafeta, [Entrega|T]),
-		NM is calculaMota(Estafeta, [Entrega|T]),
-		Sol is NB + NM.
-			
-
-
-calculaBicicleta(Estafeta, [Entrega|T], Sol):-
-
-calculaMota(Estafeta, [Entrega|T], Sol):-
 
 
 
@@ -180,20 +158,3 @@ calculaMota(Estafeta, [Entrega|T], Sol):-
 % Concatenar uma lista
 append([ ], L, L).
 append([H|L1], L2, [H|L3]):- append(L1, L2, L3).
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

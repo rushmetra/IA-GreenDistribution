@@ -1,17 +1,12 @@
 
+solucoes(T,Q,S) :- findall(T,Q,S).
 
+% Cliente: #idCliente, Morada -> {V,F}
 
-
-
-%  teste([1,2,3],S). 
-
-calculaHead([Head|T], Sol):-
-		Sol is Head.
-
-
-teste([Head1|T], Boda, Sol):-
-		calculaHead([Head1|T], Sol).
-		Boda is 1.
+cliente(1, 'Rua do Meio').
+cliente(2, 'Rua do Verde').
+cliente(3, 'Rua do Amarelo').
+cliente(4, 'Rua do Amarelo').
 
 
 estafeta(0, 4.1 ,'Daniel').
@@ -20,26 +15,29 @@ estafeta(2, 3.5 ,'Guilherme').
 estafeta(3, 2.3 ,'Rodrigo').
 estafeta(4, 5.0,'Nunão').
 
-entrega( 0, 1, 2, 4, 'Bicicleta',  19.99). % # 0 = imediato
-entrega( 24.0, 1, 2, 4, 'Bicicleta',  19.99).
-entrega( 2.0, 2, 9, 3, 'Mota', 29.99).
-entrega( 6.0, 3, 5, 2, 'Carro', 39.99).
-entrega( 16.0, 4, 8, 4, 'Bicicleta', 19.99).
-
-
-getEntregasEstafeta(estafeta(Id, _,_), [entrega(_, _, _, IdEstafeta, _,  _)|T], R) :-
-					Id == IdEstafeta,
-					append(R,[entrega( _, _, _, IdEstafeta, _,  _)], R1)
-					getEntregasEstafeta(estafeta(Id, _,_), T, R1).
+entrega(data(13, 12, 2021), 0, 1, 2, 4, 'Bicicleta',  19.99). % # 0 = imediato
+entrega(data(13, 12, 2021), 24.0, 1, 2, 4, 'Bicicleta',  19.99).
+entrega(data(19, 05, 2021), 16.0, 4, 8, 4, 'Bicicleta', 19.99).
+entrega(data(16, 11, 2021), 2.0, 2, 9, 3, 'Mota', 29.99).
+entrega(data(18, 09, 2021), 6.0, 3, 5, 2, 'Carro', 39.99).
 
 
 
+encomenda(0, 2.5, 10).
+encomenda(1, 5.2, 15).
+encomenda(2, 19.1, 30).
+encomenda(5, 7.4, 30).
 
 
+% Cliente: #idCliente, Morada -> {V,F}
+% Estafeta: #idEstafeta, Pontuacao, Nome -> {V,F}
+% Encomenda: #IdEncomenda, Peso, Volume -> {V,F}
+% Entrega: # Prazo, #IdEntrega, #IdCliente, #IdEstafeta, MeioTransporte, Custo  -> {V,F}
 
+entregas_de_estafeta(IdEst,R) :- 
+    solucoes(entrega(Data,Prazo,IdEntrega,IdC,IdEst,Mt,Custo), (estafeta(IdEst,_,_),entrega(Data,Prazo,IdEntrega,IdC,IdEst,Mt,Custo)), R).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Concatenar uma lista
 append([ ], L, L).
 append([H|L1], L2, [H|L3]):- append(L1, L2, L3).
-
