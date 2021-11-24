@@ -79,17 +79,20 @@ estafeta(4, 5.0,'Nunão').
 encomenda(0, 2.5, 10).
 encomenda(1, 5.2, 15).
 encomenda(2, 19.1, 30).
+encomenda(3, 15.3, 12).
 encomenda(5, 7.4, 30).
+
+
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Entrega --------------- - - - - - - - - - -  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-% Entrega: #Data, Prazo, #IdEntrega, #IdCliente, #IdEstafeta, IdVeiculo, Custo  -> {V,F}
-entrega(data(13, 12, 2021), 0, 1, 2, 4, 1,  19.99). % # 0 = imediato
-entrega(data(13, 12, 2021), 24.0, 1, 2, 4, 1,  13.99).
-entrega(data(19, 05, 2021), 16.0, 4, 1, 4, 2, 15.99).
-entrega(data(16, 11, 2021), 2.0, 2, 9, 3, 2, 29.99).
-entrega(data(18, 09, 2021), 6.0, 3, 5, 2, 3, 39.99).
+% Entrega: #Data, Prazo, #IdEntrega, #IdEncomenda, #IdCliente, #IdEstafeta, IdVeiculo, Custo  -> {V,F}
+entrega(data(13, 12, 2021), 0, 1, 0, 2, 4, 1,  19.99). % # 0 = imediato
+entrega(data(13, 12, 2021), 24.0, 1, 3, 2, 4, 1,  13.99).
+entrega(data(19, 05, 2021), 16.0, 4, 1,1, 4, 2, 15.99).
+entrega(data(16, 11, 2021), 2.0, 2, 1,9, 3, 2, 29.99).
+entrega(data(18, 09, 2021), 6.0, 3, 2,5, 2, 3, 39.99).
 
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
@@ -124,14 +127,14 @@ teste([R|LR]) :- R, teste(LR).
 %------------------------------ Registos ------------------------------
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Registar Entrega
-registaEntrega(Data, Prazo, IdE, IdC, IdEst, P, Mt, C) :-
-             evolucao(entrega(Data, Prazo, IdE, IdC, IdEst, P, Mt, C)).
+registaEntrega(Data, Prazo, IdE, IdEnc, IdC, IdEst, P, Mt, C) :-
+             evolucao(entrega(Data, Prazo, IdE,IdEnc, IdC, IdEst, P, Mt, C)).
 
 % Registar Cliente
 registaCliente(IdCliente, Morada) :- inserir(cliente(IdCliente, Morada)).
 
 % Registar Estafeta
-registaEstafeta(IdEstafeta, Nome) :- inserir(estafeta(IdEstafeta, Nome)).
+registaEstafeta(IdEstafeta, Pontuacao, Nome) :- inserir(estafeta(IdEstafeta,Pontuacao, Nome)).
 
 % Registar Encomenda
 registaEncomenda(IdEncomenda, Peso, Volume) :- inserir(encomenda(IdEncomenda, Peso, Volume)).
@@ -156,10 +159,10 @@ veiculos(['Bicicleta','Mota','Carro']).
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 
 entregas_de_estafeta_bicicleta(IdEst,R) :- 
-    solucoes(entrega(Data,Prazo,IdEntrega,IdC,IdEst,1,Custo), (estafeta(IdEst,_,_),entrega(Data,Prazo,IdEntrega,IdC,IdEst,1,Custo)), R).
+    solucoes(entrega(Data,Prazo,IdEntrega,IdEnc,IdC,IdEst,1,Custo), (estafeta(IdEst,_,_),entrega(Data,Prazo,IdEntrega,IdEnc,IdC,IdEst,1,Custo)), R).
 
 entregas_de_estafeta_mota(IdEst,R) :- 
-    solucoes(entrega(Data,Prazo,IdEntrega,IdC,IdEst,2,Custo), (estafeta(IdEst,_,_),entrega(Data,Prazo,IdEntrega,IdC,IdEst,2,Custo)), R).
+    solucoes(entrega(Data,Prazo,IdEntrega,IdEnc,IdC,IdEst,2,Custo), (estafeta(IdEst,_,_),entrega(Data,Prazo,IdEntrega,IdEnc,IdC,IdEst,2,Custo)), R).
 
 calcular_escologia_estafeta(IdEstafeta, R):-
     entregas_de_estafeta_bicicleta(IdEstafeta, X),
@@ -184,14 +187,28 @@ query1(R):- lista_de_estafetas(L1),
 
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-%---------- 3. identificar os clientes servidos por um determinado estafeta  -  -  -  -   -
+%---------- 2. identificar que estafetas entregaram determinada(s) encomenda(s) a um determinado cliente;  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-query3(IdEst,L) :- solucoes(cliente(IdC,Morada), (estafeta(IdEst,_,_),cliente(IdC,Morada),entrega(Data,Prazo,IdEntrega,IdC,IdEst,IdV,Custo)), X),
+%Entrega: #Data, Prazo, #IdEntrega, #IdEncomenda, #IdCliente, #IdEstafeta, IdVeiculo, Custo  -> {V,F}
+
+
+quem_entregou_encomenda(IdEnc,IdC,L) :- solucoes(estafeta(IdEst,Pont,Nome), (estafeta(IdEst,Pont,Nome),cliente(IdC,_), encomenda(IdEnc,_,_), entrega(_,_,_,IdEnc,IdC,IdEst,_,_)),L).
+
+
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+%---------- 3. identificar os clientes servidos por um determinado estafeta  -
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+query3(IdEst,L) :- solucoes(cliente(IdC,Morada), (estafeta(IdEst,_,_),cliente(IdC,Morada),entrega(Data,Prazo,IdEntrega,IdEnc,IdC,IdEst,IdV,Custo)), X),
     diferentes(X,L).
 
 
 
-
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+% Pertencer a uma Lista
+pertence(H,[H|_]):-!,true.
+pertence(X,[H|T]) :-
+    X \= H,
+    pertence(X,T).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Obter elemento num indice de uma lista
