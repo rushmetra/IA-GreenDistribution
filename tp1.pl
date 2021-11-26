@@ -207,15 +207,10 @@ query3(IdEst,L) :- solucoes(cliente(IdC,Morada), (estafeta(IdEst,_,_),cliente(Id
 lista_de_pontuacoes_estafeta(IdEst,L) :- solucoes(Pe, (estafeta(IdEst,Pont,Nome), entrega(_,_,_,_,_,IdEst,_,_,Pe)), L).
 
 query6(IdEst,R):- lista_de_pontuacoes_estafeta(IdEst,X),
-    list_length(X,L),
+    comprimento(X,L),
     sum_list(X,S),
     R is S / L.
 
-
-%--------------------------------- - - - - - - - - - -  -  -  -  -   -
-% Comprimento de uma lista
-list_length([]     , 0 ).
-list_length([_|Xs] , L ) :- list_length(Xs,N) , L is N+1 .
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Somatório dos elementos de uma lista
