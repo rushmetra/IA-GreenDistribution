@@ -21,7 +21,7 @@
 :- dynamic cliente/2.
 :- dynamic estafeta/3.
 :- dynamic encomenda/3.
-:- dynamic entrega/8.
+:- dynamic entrega/9.
 
 solucoes(T,Q,S) :- findall(T,Q,S).
 
@@ -42,7 +42,6 @@ solucoes(T,Q,S) :- findall(T,Q,S).
 
 
 
-
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %----------------------- Base de Conhecimento  - - - -  -  -  -  -   -
@@ -52,13 +51,22 @@ solucoes(T,Q,S) :- findall(T,Q,S).
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Cliente ----------------- - - - - - - - - - -  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-% Cliente: #idCliente, Morada -> {V,F}
+% Cliente: #idCliente, idFregesia -> {V,F}
 
-cliente(1, 'Rua do Meio').
-cliente(2, 'Rua do Verde').
-cliente(3, 'Rua do Amarelo').
-cliente(4, 'Rua do Amarelo').
+cliente(1, 4).
+cliente(2, 2).
+cliente(3, 1).
+cliente(4, 0).
 
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+%-------- Fregesia ----------------- - - - - - - - - - -  -  -  -  -   -
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+% Fregesia: #id, nome ,Distancia -> {V,F}
+
+fregesia(0,'Braga',10).
+fregesia(1,'Porto',20).
+fregesia(2,'Famalição',25).
+fregesia(3,'Viana do Castelo',23).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Estafeta ---------------- - - - - - - - - - -  -  -  -  -   -
@@ -86,11 +94,11 @@ encomenda(5, 7.4, 30).
 %-------- Entrega --------------- - - - - - - - - - -  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Entrega: #Data, Prazo, #IdEntrega, #IdEncomenda, #IdCliente, #IdEstafeta, IdVeiculo, Custo, PontuacaoEntrega  -> {V,F}
-entrega(data(13, 12, 2021), 0, 1, 0, 2, 4, 1,  19.99, 3.5). % # 0 = imediato
-entrega(data(13, 12, 2021), 24.0, 1, 3, 2, 4, 1,  13.99, 3.2).
-entrega(data(19, 05, 2021), 16.0, 4, 1,1, 4, 2, 15.99, 4.1).
-entrega(data(16, 11, 2021), 2.0, 2, 1,9, 3, 2, 29.99, 4.9).
-entrega(data(18, 09, 2021), 6.0, 3, 2,5, 2, 3, 39.99, 4.4).
+entrega(data(13, 12, 2021), 14.0, 0, 1, 2, 4, 1,  19.99,3). %query2(2,[1,2],L).
+entrega(data(13, 12, 2021), 24.0, 1, 2, 2, 3, 1,  13.99,4). 
+entrega(data(19, 05, 2021), 16.0, 2, 3, 1, 4, 2, 15.99,2).
+entrega(data(16, 11, 2021), 20.0, 3, 2, 9, 3, 2, 29.99,5).
+entrega(data(18, 09, 2021), 60.0, 4, 3, 5, 2, 3, 39.99,4).
 
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
@@ -189,9 +197,10 @@ query1(R):- lista_de_estafetas(L1),
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %Entrega: #Data, Prazo, #IdEntrega, #IdEncomenda, #IdCliente, #IdEstafeta, IdVeiculo, Custo,PontuacaoEntrega  -> {V,F}
 
-
-quem_entregou_encomenda(IdEnc,IdC,L) :- solucoes(estafeta(IdEst,Pont,Nome), (estafeta(IdEst,Pont,Nome),cliente(IdC,_), encomenda(IdEnc,_,_), entrega(_,_,_,IdEnc,IdC,IdEst,_,_,_,_)),L).
-
+query2(IdCliente,[X],L) :- solucoes(estafeta(IdEst,Pont,N),(estafeta(IdEst,Pont,N),encomenda(X,_,_),entrega(_,_,_,X,IdCliente,IdEst,_,_,_)),L).
+query2(IdCliente,[X|H],L) :- solucoes(estafeta(IdEst,Pont,N),(estafeta(IdEst,Pont,N),encomenda(X,_,_),entrega(_,_,_,X,IdCliente,IdEst,_,_,_)),L1),
+                            query2(IdCliente,H,L2),
+                            append(L1,L2,L).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 3. identificar os clientes servidos por um determinado estafeta  -
@@ -203,8 +212,8 @@ query3(IdEst,L) :- solucoes(cliente(IdC,Morada), (estafeta(IdEst,_,_),cliente(Id
 %---------- 4. calcular o valor faturado pela Green Distribution num determinado dia  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 
-% valor_faturado_dia(data(D, M, A), R) :- solucoes(entrega(data(D, M, A),_,_,_,_,_,_,Custo,_))
-
+query4(data(DD,MM,AA),R):- solucoes(Custo,(entrega((data(DD,MM,AA)),_,_,_,_,_,_,Custo,_)),L),%problema no custo
+                            sum_list(L, R).                        
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 5. Identificar as zonas com maior volume de entregas  -
@@ -213,7 +222,7 @@ query3(IdEst,L) :- solucoes(cliente(IdC,Morada), (estafeta(IdEst,_,_),cliente(Id
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 6.calcular a classificação media de satisfação de cliente para um determinado estafeta  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-lista_de_pontuacoes_estafeta(IdEst,L) :- solucoes(Pe, (estafeta(IdEst,Pont,Nome), entrega(_,_,_,_,_,IdEst,_,_,Pe)), L).
+lista_de_pontuacoes_estafeta(IdEst,L) :- solucoes(Pe, (estafeta(IdEst,Pont,Nome), entrega(_,_,_,_,_,IdEst,_,_,Pe)), L).%problema na pontuação
 
 query6(IdEst,R):- lista_de_pontuacoes_estafeta(IdEst,X),
     comprimento(X,L),
@@ -236,6 +245,18 @@ query6(IdEst,R):- lista_de_pontuacoes_estafeta(IdEst,X),
 %---------- 10. calcular o peso total transporte por estafeta num determinado dia  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 
+%verificar se uma data é igual
+igual(data(DD,MM,AA),data(DD,MM,AA)).
+
+% Verificar se uma data é anterior a outra
+anterior(data(_,_,A1),data(_,_,A2)) :- A1 < A2.
+anterior(data(_,M1,A1),data(_,M2,A2)) :- A1 == A2, M1 < M2.
+anterior(data(D1,M1,A1),data(D2,M2,A2)) :- A1 == A2, M1 == M2, D1 < D2.
+
+%Verificar se uma data é posterior a outra
+posterior(data(_,_,A1),data(_,_,A2)) :- A1 > A2.
+posterior(data(_,M1,A1),data(_,M2,A2)) :- A1 == A2, M1 > M2.
+posterior(data(D1,M1,A1),data(D2,M2,A2)) :- A1 == A2, M1 == M2, D1 > D2.
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Somatório dos elementos de uma lista
