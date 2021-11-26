@@ -82,8 +82,6 @@ encomenda(2, 19.1, 30).
 encomenda(3, 15.3, 12).
 encomenda(5, 7.4, 30).
 
-
-
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Entrega --------------- - - - - - - - - - -  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
@@ -202,6 +200,14 @@ query3(IdEst,L) :- solucoes(cliente(IdC,Morada), (estafeta(IdEst,_,_),cliente(Id
     diferentes(X,L).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
+%---------- 4. calcular o valor faturado pela Green Distribution num determinado dia  -
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+%---------- 5. Identificar as zonas com maior volume de entregas  -
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 6.calcular a classificação media de satisfação de cliente para um determinado estafeta  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 lista_de_pontuacoes_estafeta(IdEst,L) :- solucoes(Pe, (estafeta(IdEst,Pont,Nome), entrega(_,_,_,_,_,IdEst,_,_,Pe)), L).
@@ -210,6 +216,22 @@ query6(IdEst,R):- lista_de_pontuacoes_estafeta(IdEst,X),
     comprimento(X,L),
     sum_list(X,S),
     R is S / L.
+
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+%---------- 7. identificar o número total de entregas pelos diferentes meios de transporte, num determinado intervalo de tempo  -
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+%---------- 8. identificar o número total de entregas pelos estafetas, num determinado intervalo de tempo  -
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+%---------- 9. calcular o número de encomendas entregues e não entregues, num determinado periodo de tempo  -
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+%---------- 10. calcular o peso total transporte por estafeta num determinado dia  -
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
 
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
