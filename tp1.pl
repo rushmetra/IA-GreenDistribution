@@ -203,6 +203,9 @@ query3(IdEst,L) :- solucoes(cliente(IdC,Morada), (estafeta(IdEst,_,_),cliente(Id
 %---------- 4. calcular o valor faturado pela Green Distribution num determinado dia  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 
+% valor_faturado_dia(data(D, M, A), R) :- solucoes(entrega(data(D, M, A),_,_,_,_,_,_,Custo,_))
+
+
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 5. Identificar as zonas com maior volume de entregas  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
