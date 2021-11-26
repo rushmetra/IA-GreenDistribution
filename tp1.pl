@@ -24,6 +24,25 @@
 :- dynamic entrega/8.
 
 solucoes(T,Q,S) :- findall(T,Q,S).
+
+
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+%-------------------------- Invariantes ------------------------------
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+% Invariantes estruturais: nao permitir a insercao de conhecimento
+%                          repetido nem inváilido
+
+
+
+
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+% Invariantes referenciais: nao permite relacionar uma entidade a outra
+%                           que nao exista (aquando da insercao)
+
+
+
+
+
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %----------------------- Base de Conhecimento  - - - -  -  -  -  -   -
@@ -60,17 +79,20 @@ estafeta(4, 5.0,'Nunão').
 encomenda(0, 2.5, 10).
 encomenda(1, 5.2, 15).
 encomenda(2, 19.1, 30).
-encomenda(3, 7.4, 30).
+encomenda(3, 15.3, 12).
+encomenda(5, 7.4, 30).
+
+
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Entrega --------------- - - - - - - - - - -  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-% Entrega: #Data, Prazo, #IdEntrega, #IdEncomenda, #IdCliente, #IdEstafeta, IdVeiculo, Custo  -> {V,F}
-entrega(data(13, 12, 2021), 14.0, 0, 1, 2, 4, 1,  19.99). % # 0 = imediato
-entrega(data(13, 12, 2021), 24.0, 1, 2, 2, 3, 1,  13.99). %4 3
-entrega(data(19, 05, 2021), 16.0, 2, 3, 1, 4, 2, 15.99).
-entrega(data(16, 11, 2021), 20.0, 3, 2, 9, 3, 2, 29.99).
-entrega(data(18, 09, 2021), 60.0, 4, 3, 5, 2, 3, 39.99).
+% Entrega: #Data, Prazo, #IdEntrega, #IdEncomenda, #IdCliente, #IdEstafeta, IdVeiculo, Custo, PontuacaoEntrega  -> {V,F}
+entrega(data(13, 12, 2021), 0, 1, 0, 2, 4, 1,  19.99, 3.5). % # 0 = imediato
+entrega(data(13, 12, 2021), 24.0, 1, 3, 2, 4, 1,  13.99, 3.2).
+entrega(data(19, 05, 2021), 16.0, 4, 1,1, 4, 2, 15.99, 4.1).
+entrega(data(16, 11, 2021), 2.0, 2, 1,9, 3, 2, 29.99, 4.9).
+entrega(data(18, 09, 2021), 6.0, 3, 2,5, 2, 3, 39.99, 4.4).
 
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
@@ -105,14 +127,14 @@ teste([R|LR]) :- R, teste(LR).
 %------------------------------ Registos ------------------------------
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Registar Entrega
-registaEntrega(Data, Prazo, IdEnt,IdEnc,IdC, IdEst, P, Mt, C) :-
-             evolucao(entrega(Data, Prazo, IdEnt,IdEnc, IdC, IdEst, P, Mt, C)).
+registaEntrega(Data, Prazo, IdE, IdEnc, IdC, IdEst, P, Mt, C) :-
+             evolucao(entrega(Data, Prazo, IdE,IdEnc, IdC, IdEst, P, Mt, C,Pe)).
 
 % Registar Cliente
 registaCliente(IdCliente, Morada) :- inserir(cliente(IdCliente, Morada)).
 
 % Registar Estafeta
-registaEstafeta(IdEstafeta, Nome) :- inserir(estafeta(IdEstafeta, Nome)).
+registaEstafeta(IdEstafeta, Pontuacao, Nome) :- inserir(estafeta(IdEstafeta,Pontuacao, Nome)).
 
 % Registar Encomenda
 registaEncomenda(IdEncomenda, Peso, Volume) :- inserir(encomenda(IdEncomenda, Peso, Volume)).
@@ -137,10 +159,10 @@ veiculos(['Bicicleta','Mota','Carro']).
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 
 entregas_de_estafeta_bicicleta(IdEst,R) :- 
-    solucoes(entrega(Data,Prazo,IdEntrega,IdEnc,IdC,IdEst,1,Custo), (estafeta(IdEst,_,_),entrega(Data,Prazo,IdEntrega,IdEnc,IdC,IdEst,1,Custo)), R).
+    solucoes(entrega(Data,Prazo,IdEntrega,IdEnc,IdC,IdEst,1,Custo,Pe), (estafeta(IdEst,_,_),entrega(Data,Prazo,IdEntrega,IdEnc,IdC,IdEst,1,Custo,Pe)), R).
 
 entregas_de_estafeta_mota(IdEst,R) :- 
-    solucoes(entrega(Data,Prazo,IdEntrega,IdEnc,IdC,IdEst,2,Custo), (estafeta(IdEst,_,_),entrega(Data,Prazo,IdEntrega,IdEnc,IdC,IdEst,2,Custo)), R).
+    solucoes(entrega(Data,Prazo,IdEntrega,IdEnc,IdC,IdEst,2,Custo,Pe), (estafeta(IdEst,_,_),entrega(Data,Prazo,IdEntrega,IdEnc,IdC,IdEst,2,Custo,Pe)), R).
 
 calcular_escologia_estafeta(IdEstafeta, R):-
     entregas_de_estafeta_bicicleta(IdEstafeta, X),
@@ -163,22 +185,50 @@ query1(R):- lista_de_estafetas(L1),
             indexOf(L2,M,I),
             nth0(I, L1, R).
 
+
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 2. identificar que estafetas entregaram determinada(s) encomenda(s) a um determinado cliente;  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-query2(IdCliente,[X],L) :- solucoes(estafeta(IdEst,Pont,N),(estafeta(IdEst,Pont,N),encomenda(X,_,_),entrega(_,_,_,X,IdCliente,IdEst,_,_)),L).
-query2(IdCliente,[X|H],L) :- solucoes(estafeta(IdEst,Pont,N),(estafeta(IdEst,Pont,N),encomenda(X,_,_),entrega(_,_,_,X,IdCliente,IdEst,_,_)),L1),
-                            query2(IdCliente,H,L2),
-                            append(L1,L2,L).
+%Entrega: #Data, Prazo, #IdEntrega, #IdEncomenda, #IdCliente, #IdEstafeta, IdVeiculo, Custo,PontuacaoEntrega  -> {V,F}
 
-%query2(IdCliente,[X1|H1],[X2|H2]) :- quem_Entregou_Encomenda(IdCliente,X1,X2),
- %                          query2(IdCliente,[H1],[H2]),!.
-              
+
+quem_entregou_encomenda(IdEnc,IdC,L) :- solucoes(estafeta(IdEst,Pont,Nome), (estafeta(IdEst,Pont,Nome),cliente(IdC,_), encomenda(IdEnc,_,_), entrega(_,_,_,IdEnc,IdC,IdEst,_,_,_,_)),L).
+
+
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-%---------- 3. identificar os clientes servidos por um determinado estafeta  -  -  -  -   -
+%---------- 3. identificar os clientes servidos por um determinado estafeta  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-query3(IdEst,L) :- solucoes(cliente(IdC,Morada), (estafeta(IdEst,_,_),cliente(IdC,Morada),entrega(_,_,_,_,IdC,IdEst,_,_)), X),
+query3(IdEst,L) :- solucoes(cliente(IdC,Morada), (estafeta(IdEst,_,_),cliente(IdC,Morada),entrega(Data,Prazo,IdEntrega,IdEnc,IdC,IdEst,IdV,Custo,Pe)), X),
     diferentes(X,L).
+
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+%---------- 6.calcular a classificação media de satisfação de cliente para um determinado estafeta  -
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+lista_de_pontuacoes_estafeta(IdEst,L) :- solucoes(Pe, (estafeta(IdEst,Pont,Nome), entrega(_,_,_,_,_,IdEst,_,_,Pe)), L).
+
+query6(IdEst,R):- lista_de_pontuacoes_estafeta(IdEst,X),
+    list_length(X,L),
+    sum_list(X,S),
+    R is S / L.
+
+
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+% Comprimento de uma lista
+list_length([]     , 0 ).
+list_length([_|Xs] , L ) :- list_length(Xs,N) , L is N+1 .
+
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+% Somatório dos elementos de uma lista
+sum_list([], 0).
+sum_list([H|T], Sum) :-
+   sum_list(T, Rest),
+   Sum is H + Rest.
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+% Pertencer a uma Lista
+pertence(H,[H|_]):-!,true.
+pertence(X,[H|T]) :-
+    X \= H,
+    pertence(X,T).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Obter elemento num indice de uma lista
@@ -196,8 +246,7 @@ head([H|_],H).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Concatenar uma lista
-
-append([H],L,[H|L]).
+append([ ], L, L).
 append([H|L1], L2, [H|L3]):- append(L1, L2, L3).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
