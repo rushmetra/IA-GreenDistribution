@@ -51,7 +51,7 @@ solucoes(T,Q,S) :- findall(T,Q,S).
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Cliente ----------------- - - - - - - - - - -  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-% Cliente: #idCliente, idFregesia -> {V,F}
+% Cliente: #idCliente, idFreguesia -> {V,F}
 
 cliente(1, 4).
 cliente(2, 2).
@@ -59,14 +59,14 @@ cliente(3, 1).
 cliente(4, 0).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-%-------- Fregesia ----------------- - - - - - - - - - -  -  -  -  -   -
+%-------- Freguesia ----------------- - - - - - - - - - -  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-% Fregesia: #id, nome ,Distancia -> {V,F}
+% Freguesia: #id, nome ,Distancia -> {V,F}
 
-fregesia(0,'Braga',10).
-fregesia(1,'Porto',20).
-fregesia(2,'Famalição',25).
-fregesia(3,'Viana do Castelo',23).
+freguesia(0,'Braga',10).
+freguesia(1,'Porto',20).
+freguesia(2,'Famalição',25).
+freguesia(3,'Viana do Castelo',23).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Estafeta ---------------- - - - - - - - - - -  -  -  -  -   -
@@ -212,12 +212,18 @@ query3(IdEst,L) :- solucoes(cliente(IdC,Morada), (estafeta(IdEst,_,_),cliente(Id
 %---------- 4. calcular o valor faturado pela Green Distribution num determinado dia  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 
-query4(data(DD,MM,AA),R):- solucoes(Custo,(entrega((data(DD,MM,AA)),_,_,_,_,_,_,Custo,_)),L),%problema no custo
+query4(data(DD,MM,AA),R):- solucoes(Custo,(entrega((data(DD,MM,AA)),_,_,_,_,_,_,Custo,_)),L),
                             sum_list(L, R).                        
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 5. Identificar as zonas com maior volume de entregas  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
+query5(N,R):-%buscar lista de freguesias onde houve entregas
+             %função iguais/repetidos calculo número de ocorrencias de uma freguesia (cumprimento + função diferentes + cumprimento)
+             %criar lista de tuplo(freguesia,n_ocorencias)
+             %take N busca N freguesias com mais numero de ocorrencias
+
+
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 6.calcular a classificação media de satisfação de cliente para um determinado estafeta  -
@@ -232,18 +238,49 @@ query6(IdEst,R):- lista_de_pontuacoes_estafeta(IdEst,X),
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 7. identificar o número total de entregas pelos diferentes meios de transporte, num determinado intervalo de tempo  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-
+query7(data(DD1,MM1,AA1),data(DD2,MM2,AA2),Bicicleta,Mota,Carro) :-solucoes(D,(entrega(D,_,_,_,_,_,1,_,_)),EBicicleta),
+                                                                    solucoes(D,(entrega(D,_,_,_,_,_,2,_,_)),EMota),
+                                                                    solucoes(D,(entrega(D,_,_,_,_,_,3,_,_)),ECarro),
+                                                                    filtra_lista(EBicicleta,data(DD1,MM1,AA1),data(DD2,MM2,AA2),X1),
+                                                                    filtra_lista(EMota,data(DD1,MM1,AA1),data(DD2,MM2,AA2),X2),
+                                                                    filtra_lista(ECarro,data(DD1,MM1,AA1),data(DD2,MM2,AA2),X3),
+                                                                    comprimento(X1,Bicicleta),
+                                                                    comprimento(X2,Mota),
+                                                                    comprimento(X3,Carro).
+                                                                    
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 8. identificar o número total de entregas pelos estafetas, num determinado intervalo de tempo  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 
+query8(data(DD1,MM1,AA1),data(DD2,MM2,AA2),R) :-solucoes(D,(entrega(D,_,_,_,_,_,_,_,_)),X1),
+                                                filtra_lista(X1,data(DD1,MM1,AA1),data(DD2,MM2,AA2),X2),
+                                                comprimento(X2,R).
+
+entre_datas(D1,D2,D3):-anterior(D1,D3),posterior(D2,D3).
+
+filtra_lista([],_,_,[]).
+filtra_lista([X|T],D1,D2,[X|T2]) :- entre_datas(D1,D2,X),
+                            filtra_lista(T,D1,D2,T2).
+filtra_lista([X|T],D1,D2,R) :- not(entre_datas(D1,D2,X)), filtra_lista(T,D1,D2,R).
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 9. calcular o número de encomendas entregues e não entregues, num determinado periodo de tempo  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
+query9(data(DD1,MM1,AA1),data(DD2,MM2,AA2),NE,E):-solucoes(D,(entrega(D,_,_,_,_,_,_,_,_)),All),
+                                                    filtra_lista(All,data(DD1,MM1,AA1),data(DD2,MM2,AA2),X1),
+                                                    comprimento(X1,A),
+                                                    solucoes(Data,(entrega(Data,_,_,IdEnc,_,_,_,_,_),encomenda(IdEnc,_,_)),Entregues),
+                                                    filtra_lista(Entregues,data(DD1,MM1,AA1),data(DD2,MM2,AA2),X2),
+                                                    comprimento(X2,E),
+                                                    NE is A-E.
+                                                
+
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 10. calcular o peso total transporte por estafeta num determinado dia  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
+query10(IdEst,data(DD,MM,AA),R) :- solucoes(P,(entrega(data(DD,MM,AA),_,_,IdEnc,_,IdEst,_,_,_),estafeta(IdEst,_,_),encomenda(IdEnc,P,_)),X1),
+                            sum_list(X1,R).
+
 
 %verificar se uma data é igual
 igual(data(DD,MM,AA),data(DD,MM,AA)).
@@ -251,12 +288,12 @@ igual(data(DD,MM,AA),data(DD,MM,AA)).
 % Verificar se uma data é anterior a outra
 anterior(data(_,_,A1),data(_,_,A2)) :- A1 < A2.
 anterior(data(_,M1,A1),data(_,M2,A2)) :- A1 == A2, M1 < M2.
-anterior(data(D1,M1,A1),data(D2,M2,A2)) :- A1 == A2, M1 == M2, D1 < D2.
+anterior(data(D1,M1,A1),data(D2,M2,A2)) :- A1 == A2, M1 == M2, D1 =< D2.
 
 %Verificar se uma data é posterior a outra
 posterior(data(_,_,A1),data(_,_,A2)) :- A1 > A2.
 posterior(data(_,M1,A1),data(_,M2,A2)) :- A1 == A2, M1 > M2.
-posterior(data(D1,M1,A1),data(D2,M2,A2)) :- A1 == A2, M1 == M2, D1 > D2.
+posterior(data(D1,M1,A1),data(D2,M2,A2)) :- A1 == A2, M1 == M2, D1 >= D2.
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Somatório dos elementos de uma lista
