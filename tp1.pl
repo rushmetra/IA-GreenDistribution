@@ -205,10 +205,6 @@ query4(data(DD,MM,AA),R):- solucoes(Custo,(entrega((data(DD,MM,AA)),_,_,_,_,_,_,
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 5. Identificar as zonas com maior volume de entregas  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-             %função iguais/repetidos calculo número de ocorrencias de uma freguesia (cumprimento + função diferentes + cumprimento)
-             %criar lista de tuplo(freguesia,n_ocorencias)
-             %take N busca N freguesias com mais numero de ocorrencias
-             %percorrer lista de diferentes e contar ocorrencias na outra lista.
 query5(N,R):-solucoes(freguesia(IdF,Cidade),(freguesia(IdF,Cidade),entrega(_, _, _,_, IdCliente, _, _, _,_),cliente(IdCliente, IdF)),LFreg1),
             diferentes( LFreg1,LFreg2),
             lista_ocorrencias(LFreg1,LFreg2,Ocorrencias),
