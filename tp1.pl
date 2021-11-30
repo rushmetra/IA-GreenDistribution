@@ -53,20 +53,20 @@ solucoes(T,Q,S) :- findall(T,Q,S).
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Cliente: #idCliente, idFreguesia -> {V,F}
 
-cliente(1, 4).
-cliente(2, 2).
+cliente(1, 0).
+cliente(2, 1).
 cliente(3, 1).
-cliente(4, 0).
+cliente(4, 3).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Freguesia ----------------- - - - - - - - - - -  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-% Freguesia: #id, nome ,Distancia -> {V,F}
+% Freguesia: #id, nome -> {V,F}
 
-freguesia(0,'Braga',10).
-freguesia(1,'Porto',20).
-freguesia(2,'Famalição',25).
-freguesia(3,'Viana do Castelo',23).
+freguesia(0,'Braga').
+freguesia(1,'Porto').
+freguesia(2,'Famalição').
+freguesia(3,'Viana do Castelo').
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Estafeta ---------------- - - - - - - - - - -  -  -  -  -   -
@@ -97,8 +97,8 @@ encomenda(5, 7.4, 30).
 entrega(data(13, 12, 2021), 14.0, 0, 1, 2, 4, 1,  19.99,3). %query2(2,[1,2],L).
 entrega(data(13, 12, 2021), 24.0, 1, 2, 2, 3, 1,  13.99,4). 
 entrega(data(19, 05, 2021), 16.0, 2, 3, 1, 4, 2, 15.99,2).
-entrega(data(16, 11, 2021), 20.0, 3, 2, 9, 3, 2, 29.99,5).
-entrega(data(18, 09, 2021), 60.0, 4, 3, 5, 2, 3, 39.99,4).
+entrega(data(16, 11, 2021), 20.0, 3, 2, 3, 3, 2, 29.99,5).
+entrega(data(18, 09, 2021), 60.0, 4, 3, 4, 2, 3, 39.99,4).
 
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
@@ -117,27 +117,14 @@ veiculo(3,'Carro').
 inserir(Termo) :- assert(Termo).
 inserir(Termo) :- retract(Termo), !, fail.
 
-%--------------------------------- - - - - - - - - - -  -  -  -  -   -
-% Extensao do predicado que permite a evolucao do conhecimento
-% solucoes(Invariante,+Termo::Invariante,Lista),
-
-evolucao( Termo ) :- solucoes(,,Lista),
-		     inserir(Termo),
-                     teste(Lista).
-
-%--------------------------------- - - - - - - - - - -  -  -  -  -   -
-% Predicado teste
-teste([]).
-teste([R|LR]) :- R, teste(LR).
-
 %------------------------------ Registos ------------------------------
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Registar Entrega
-registaEntrega(Data, Prazo, IdE, IdEnc, IdC, IdEst, P, Mt, C) :-
-             evolucao(entrega(Data, Prazo, IdE,IdEnc, IdC, IdEst, P, Mt, C,Pe)).
+registaEntrega(Data, Prazo, IdE, IdEnc, IdC, IdEst, P, Mt, C,Pe) :-
+             inserir(entrega(Data, Prazo, IdE,IdEnc, IdC, IdEst, P, Mt, C,Pe)).
 
 % Registar Cliente
-registaCliente(IdCliente, Morada) :- inserir(cliente(IdCliente, Morada)).
+registaCliente(IdCliente, IdFreguesia) :- inserir(cliente(IdCliente, IdFreguesia)).
 
 % Registar Estafeta
 registaEstafeta(IdEstafeta, Pontuacao, Nome) :- inserir(estafeta(IdEstafeta,Pontuacao, Nome)).
@@ -182,7 +169,7 @@ calcula_ecologia_recursive(L):- solucoes([estafeta(IdEst, Pont, N),Y], (estafeta
 
 lista_de_estafetas(L):- solucoes(estafeta(IdEst,Pont,N),(estafeta(IdEst, Pont, N)), L).
 
-lista_de_ecologias(L):- solucoes(Y, (estafeta(IdEst, Pont, N), calcular_escologia_estafeta(IdEst,Y)), L).
+lista_de_ecologias(L):- solucoes(Y, (estafeta(IdEst, _, _), calcular_escologia_estafeta(IdEst,Y)), L).
 
 
 query1(R):- lista_de_estafetas(L1),
@@ -205,7 +192,7 @@ query2(IdCliente,[X|H],L) :- solucoes(estafeta(IdEst,Pont,N),(estafeta(IdEst,Pon
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 3. identificar os clientes servidos por um determinado estafeta  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-query3(IdEst,L) :- solucoes(cliente(IdC,Morada), (estafeta(IdEst,_,_),cliente(IdC,Morada),entrega(Data,Prazo,IdEntrega,IdEnc,IdC,IdEst,IdV,Custo,Pe)), X),
+query3(IdEst,L) :- solucoes(cliente(IdC,Freguesia), (estafeta(IdEst,_,_),cliente(IdC,Freguesia),entrega(_,_,_,_,IdC,IdEst,_,_,_)), X),
     diferentes(X,L).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
@@ -218,17 +205,33 @@ query4(data(DD,MM,AA),R):- solucoes(Custo,(entrega((data(DD,MM,AA)),_,_,_,_,_,_,
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 5. Identificar as zonas com maior volume de entregas  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-query5(N,R):-%buscar lista de freguesias onde houve entregas
              %função iguais/repetidos calculo número de ocorrencias de uma freguesia (cumprimento + função diferentes + cumprimento)
              %criar lista de tuplo(freguesia,n_ocorencias)
              %take N busca N freguesias com mais numero de ocorrencias
+             %percorrer lista de diferentes e contar ocorrencias na outra lista.
+query5(N,R):-solucoes(freguesia(IdF,Cidade),(freguesia(IdF,Cidade),entrega(_, _, _,_, IdCliente, _, _, _,_),cliente(IdCliente, IdF)),LFreg1),
+            diferentes( LFreg1,LFreg2),
+            lista_ocorrencias(LFreg1,LFreg2,Ocorrencias),
+            busca(N,Ocorrencias,LFreg2,R).
 
+busca(0,_,_,[]).
+busca(N,Ocorrencias,Lista,[X|T]):- comprimento(Lista,C), N =< C ,max_list(Ocorrencias,M),
+                            nth0(I,Ocorrencias,M), 
+                            nth0(I,Lista,X),
+                            away(Ocorrencias,I,Ocorrencias2),
+                            away(Lista,I,Lista2),
+                            N1 is N-1,
+                            busca(N1,Ocorrencias2,Lista2,T).
 
+%Calcula as ocorrencias dos elemento de uma lista(L2) em outra(L1)   
+%lista_ocorrencias(L1,L2,R).
+lista_ocorrencias(_,[],[]).
+lista_ocorrencias(L,[X|T1],[R|T2]) :- count(X, L, R),lista_ocorrencias(L,T1,T2).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 6.calcular a classificação media de satisfação de cliente para um determinado estafeta  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-lista_de_pontuacoes_estafeta(IdEst,L) :- solucoes(Pe, (estafeta(IdEst,Pont,Nome), entrega(_,_,_,_,_,IdEst,_,_,Pe)), L).%problema na pontuação
+lista_de_pontuacoes_estafeta(IdEst,L) :- solucoes(Pe, (estafeta(IdEst,_,_), entrega(_,_,_,_,_,IdEst,_,_,Pe)), L).%problema na pontuação
 
 query6(IdEst,R):- lista_de_pontuacoes_estafeta(IdEst,X),
     comprimento(X,L),
@@ -281,20 +284,24 @@ query9(data(DD1,MM1,AA1),data(DD2,MM2,AA2),NE,E):-solucoes(D,(entrega(D,_,_,_,_,
 query10(IdEst,data(DD,MM,AA),R) :- solucoes(P,(entrega(data(DD,MM,AA),_,_,IdEnc,_,IdEst,_,_,_),estafeta(IdEst,_,_),encomenda(IdEnc,P,_)),X1),
                             sum_list(X1,R).
 
-
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %verificar se uma data é igual
 igual(data(DD,MM,AA),data(DD,MM,AA)).
-
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Verificar se uma data é anterior a outra
 anterior(data(_,_,A1),data(_,_,A2)) :- A1 < A2.
 anterior(data(_,M1,A1),data(_,M2,A2)) :- A1 == A2, M1 < M2.
 anterior(data(D1,M1,A1),data(D2,M2,A2)) :- A1 == A2, M1 == M2, D1 =< D2.
-
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %Verificar se uma data é posterior a outra
 posterior(data(_,_,A1),data(_,_,A2)) :- A1 > A2.
 posterior(data(_,M1,A1),data(_,M2,A2)) :- A1 == A2, M1 > M2.
 posterior(data(D1,M1,A1),data(D2,M2,A2)) :- A1 == A2, M1 == M2, D1 >= D2.
-
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+% Contar numero de ocorrencia de um elemento numa lista 
+count(_, [], 0).
+count(X, [X | T], N) :-!, count(X, T, N1),N is N1 + 1.
+count(X, [_ | T], N) :- count(X, T, N).
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Somatório dos elementos de uma lista
 sum_list([], 0).
@@ -330,7 +337,7 @@ append([H|L1], L2, [H|L3]):- append(L1, L2, L3).
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Comprimento de uma lista
 comprimento([],0).
-comprimento([H|T],R) :- comprimento(T,N), R is N+1.
+comprimento([_|T],R) :- comprimento(T,N), R is N+1.
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % remove os elementos repetidos de uma lista
@@ -346,3 +353,7 @@ diferentes( [X|L],[X|NL] ) :- removerElemento( L,X,TL ), diferentes( TL,NL ).
 removerElemento( [],_,[] ).
 removerElemento( [X|L],X,NL ) :- removerElemento( L,X,NL ).
 removerElemento( [X|L],Y,[X|NL] ) :- X \== Y, removerElemento( L,Y,NL ).
+
+% Remove o elemento presente num determinado index
+away([_|H],0,H):-!.
+away([G|H],N,[G|L]):- N >= 1, N1 is N - 1,!,away(H,N1,L). 
