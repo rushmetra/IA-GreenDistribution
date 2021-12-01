@@ -297,7 +297,7 @@ lista_ocorrencias(L,[X|T1],[R|T2]) :- count(X, L, R),lista_ocorrencias(L,T1,T2).
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 6.calcular a classificação media de satisfação de cliente para um determinado estafeta  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-lista_de_pontuacoes_estafeta(IdEst,L) :- solucoes(Pe, (estafeta(IdEst,_,_), entrega(_,_,_,_,_,IdEst,_,_,Pe)), L).%problema na pontuação
+lista_de_pontuacoes_estafeta(IdEst,L) :- solucoes(Pe, (estafeta(IdEst,_,_), entrega(_,_,_,_,_,IdEst,_,_,Pe)), L).
 
 query6(IdEst,R):- lista_de_pontuacoes_estafeta(IdEst,X),
     comprimento(X,L),
