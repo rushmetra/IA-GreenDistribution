@@ -23,6 +23,7 @@
 :- dynamic estafeta/3.
 :- dynamic encomenda/3.
 :- dynamic entrega/9.
+:- dynamic veiculo/2.
 
 solucoes(T,Q,S) :- findall(T,Q,S).
 
