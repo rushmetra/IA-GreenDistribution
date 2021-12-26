@@ -1,0 +1,49 @@
+SRCR (Sist. representacao conhecimento e raciocínio)
+-> Distruibuição de encomendas
+
+Empresa: Green Distribution
+Objetivo: meio de entrega mais ecológico
+
+Meios de Transporte:
+    bicicletas - máx 5kg,   10km/h
+    motos      - máx 20kg,  35km/h
+    carros     - máx 100kg, 25km/h
+
+
+Estafeta (pessoa):
+ -lista de entregas em determinadas ruas da cidade
+ -prazo de entrega(def. pelo cliente) (penalizacao)
+
+
+Ruas:
+ -associadas a freguesia
+
+Cliente: 
+ - indica o prazo entrega
+ - classifica a entrega (Ranking 0-5 estrelas)
+
+Encomenda: 
+ - peso 
+ - volume
+
+Custo do serviço de entrega:
+ - depende da encomenda, prazo e meio de transporte.
+
+
+cliente: #IdCliente, Morada -> {V,F}
+estafeta: #IdEstafeta, Ranking, Nome-> {V,F}
+encomenda: #IdEncomenda, Peso, Volume-> {V,F}
+entrega: Data, Prazo, HoraInicio, HoraFim, #IdEntrega, #IdCliente, #IdEstafeta, Pontuacao, MeioTransporte, Custo  -> {V,F}
+
+
+
+Funcionalidades:
+    1. identificar estafeta que utilizou mais vezes um meio de transporte mais ecológico
+    2. identificar estafetas que entregaram determinadas encomendas a um determinado cliente
+    3. identificar clientes servidos por um determinado estafeta
+    4. calcular valor faturado pela Green Distribution num determinado dia
+    5. identificar zonas (rua ou freguesia) com maior volume de entregas
+    6. calcular classificao media de satisfação de cliente para um determinado estafeta
+    7. identificar nº total entregas pelos dif. meios transporte, num determinado intervalo de tempo
+    8. calcular nº encomendas entregues e não entregues, num determinado período de tempo
+    9. calcular peso total transportado por estafeta num determinado dia
