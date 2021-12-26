@@ -23,24 +23,9 @@
 :- dynamic estafeta/3.
 :- dynamic encomenda/3.
 :- dynamic entrega/9.
+:- dynamic veiculo/2.
 
 solucoes(T,Q,S) :- findall(T,Q,S).
-
-
-%--------------------------------- - - - - - - - - - -  -  -  -  -   -
-%-------------------------- Invariantes ------------------------------
-%--------------------------------- - - - - - - - - - -  -  -  -  -   -
-% Invariantes estruturais: nao permitir a insercao de conhecimento
-%                          repetido nem inváilido
-
-
-
-
-%--------------------------------- - - - - - - - - - -  -  -  -  -   -
-% Invariantes referenciais: nao permite relacionar uma entidade a outra
-%                           que nao exista (aquando da insercao)
-
-
 
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
@@ -159,19 +144,9 @@ veiculo(3,'Carro').
 inserir(Termo) :- assert(Termo).
 inserir(Termo) :- retract(Termo), !, fail.
 
-%------------------------------ Registos ------------------------------
-%--------------------------------- - - - - - - - - - -  -  -  -  -   -
-% Registar Entrega
 
-%prazo >=8 ->3
-% prazo  5-8 -> 4
-% prazo 2->5 -> 6
-%prazo <=2 -> 8
-
-%bicicleta -> 2
-% mota -> 3
-% carro -> 5
-
+%--------------------------------
+% Cálculo dos Custos de Entrega
 preco_veiculo(IdV,R) :- IdV==1, R is 2.
 preco_veiculo(IdV,R) :- IdV==2, R is 3.
 preco_veiculo(IdV,R) :- IdV==3, R is 5.
@@ -189,6 +164,11 @@ det_veiculo(Peso,R) :- Peso >5, Peso =< 20, R is 2.
 det_veiculo(Peso,R) :- Peso > 20, Peso =< 100, R is 3.
 
 
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+%-------- Registos --------------- - - - - - - - - - -  -  -  -  -   -
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+
+% Registar Entrega
 registaEntrega(Data, Prazo, IdE, IdEnc, IdC, IdEst,Pe):-
             busca_peso(IdEnc,Peso), det_veiculo(Peso,IdVeiculo), 
             preco_prazo(Prazo,R1),preco_veiculo(IdVeiculo,R2), C is R1+R2,
@@ -252,7 +232,6 @@ query1(R):- lista_de_estafetas(L1),
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 2. identificar que estafetas entregaram determinada(s) encomenda(s) a um determinado cliente;  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-%Entrega: #Data, Prazo, #IdEntrega, #IdEncomenda, #IdCliente, #IdEstafeta, IdVeiculo, Custo,PontuacaoEntrega  -> {V,F}
 
 query2(IdCliente,[X],L) :- solucoes(estafeta(IdEst,Pont,N),(estafeta(IdEst,Pont,N),encomenda(X,_,_),entrega(_,_,_,X,IdCliente,IdEst,_,_,_)),L).
 query2(IdCliente,[X|H],L) :- solucoes(estafeta(IdEst,Pont,N),(estafeta(IdEst,Pont,N),encomenda(X,_,_),entrega(_,_,_,X,IdCliente,IdEst,_,_,_)),L1),
@@ -297,7 +276,7 @@ lista_ocorrencias(L,[X|T1],[R|T2]) :- count(X, L, R),lista_ocorrencias(L,T1,T2).
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 6.calcular a classificação media de satisfação de cliente para um determinado estafeta  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-lista_de_pontuacoes_estafeta(IdEst,L) :- solucoes(Pe, (estafeta(IdEst,_,_), entrega(_,_,_,_,_,IdEst,_,_,Pe)), L).%problema na pontuação
+lista_de_pontuacoes_estafeta(IdEst,L) :- solucoes(Pe, (estafeta(IdEst,_,_), entrega(_,_,_,_,_,IdEst,_,_,Pe)), L).
 
 query6(IdEst,R):- lista_de_pontuacoes_estafeta(IdEst,X),
     comprimento(X,L),
