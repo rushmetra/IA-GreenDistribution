@@ -9,7 +9,7 @@
 
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-% SICStus PROLOG: Declaracoes iniciais
+% SICStus PROLOG: Declaracoes iniciaisS
 
 :- set_prolog_flag(discontiguous_warnings, off).
 :- set_prolog_flag(single_var_warnings, off).
@@ -34,17 +34,50 @@ solucoes(T,Q,S) :- findall(T,Q,S).
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 
+
+%----------------------Representação do Cenário----------------------
+g( grafo([gualtar,lamacaes,saovicente,saovitor,nogueiro,real,sjsl,espinho,sobreposta,pedralva], % sjsl = sao jose de sao lazaro
+  [aresta(gualtar,adaufe,5),
+   aresta(gualtar,saovitor,2),
+   aresta(gualtar,nogueiro,3),
+   aresta(adaufe,saovicente,3),
+   aresta(adaufe,palmeira,7),
+   aresta(saovitor,saovicente,5),
+   aresta(saovitor,sjsl,3),
+   aresta(saovitor,lamacaes,3),
+   aresta(nogueiro,lamacaes,1),
+   aresta(nogueiro,espinho,4.5),
+   aresta(espinho,sobreposta,3),
+   aresta(sobreposta,pedralva,2),
+   aresta(lamacaes,sjsl,3.5),
+   aresta(sjsl,se,2),
+   aresta(se,real,3),
+   aresta(se,saovicente,4),
+   aresta(real,saovicente,4),
+   aresta(real,palmeira,7),
+   aresta(palmeira,saovicente,4)]
+ )).
+
+
+
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Freguesia ----------------- - - - - - - - - - -  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Freguesia: #id, nome -> {V,F}
 
-freguesia(0,'Braga').
-freguesia(1,'Porto').
-freguesia(2,'São Vicente').
-freguesia(3,'Lamaçães').
-freguesia(4,'Gualtar').
-freguesia(5,'Ferreiros').
+freguesia(0,'Gualtar').
+freguesia(1,'Adaufe').
+freguesia(2,'São Vitor').
+freguesia(3,'Nogueiró').
+freguesia(4,'São Vicente').
+freguesia(5,'Palmeira').
+freguesia(6,'Sao José de São Lázaro').
+freguesia(7,'Lamaçães').
+freguesia(8,'Espinho').
+freguesia(9,'Sobreposta').
+freguesia(10,'Pedralva').
+freguesia(11,'Sé').
+freguesia(12,'Real').
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Cliente ----------------- - - - - - - - - - -  -  -  -  -   -
