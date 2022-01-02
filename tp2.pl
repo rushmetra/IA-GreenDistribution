@@ -34,8 +34,7 @@ solucoes(T,Q,S) :- findall(T,Q,S).
 %----------------------- Base de Conhecimento  - - - -  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-
-%----------------------Representação do Cenário----------------------
+% aresta: Origem, Destino, #custoDistancia, #custoTempo
 aresta(gualtar,adaufe,5).
 aresta(gualtar,saovitor,2).
 aresta(gualtar,nogueiro,3).
@@ -45,9 +44,9 @@ aresta(saovitor,saovicente,5).
 aresta(saovitor,sjsl,3).
 aresta(saovitor,lamacaes,3).
 aresta(nogueiro,lamacaes,1).
-aresta(lamacaes,sjsl,3.5).
+aresta(lamacaes,sjsl,4).
 aresta(sjsl,se,2).
-aresta(se,real,3).
+aresta(se,real,4).
 aresta(se,saovicente,4).
 aresta(real,saovicente,4).
 aresta(real,palmeira,7).
@@ -443,9 +442,10 @@ pertenceTodos([H|T], L) :-
 %--------------------------------------------------------------------
 %-----------------------PESQUISAS------------------------------------
 %---------------------------------------------------------------------
-inicial(gualtar).
 
 
+
+% PESQUISA NAO-INFORMADA
 %-------------------------------------------------------------------
 %---------------PROFUNDIDADE PRIMEIRO------------------------------------
 %-------------------------------------------------------------------
@@ -503,7 +503,21 @@ busca_largura([ [N|Caminho]| Caminhos ], Solucao) :-
     append(Caminhos, NovosCaminhos, Caminhos1), !,
     (busca_largura(Caminhos1, Solucao); busca_largura(Caminhos, Solucao)).
 
-%--------------------------------------------------------------------
+%-------------------------------------------------------------------
+%---------------PESQUISA ITERATIVA EM PROFUNDIDADE------------------
+%-------------------------------------------------------------------
+%-------------------------------------------------------------------
+
+
+% PESQUISA INFORMADA
+%-------------------------------------------------------------------
+%---------------ALGORITMO A* (A ESTRELA)------------------------------------
+%-------------------------------------------------------------------
+
+
+
+
+%--------------------------------------------------------
 % Extensao do predicado que remove a cabeça a uma lista
 removeCabeca([],[]).
 removeCabeca([_|T],T).
