@@ -18,6 +18,7 @@
 % SICStus PROLOG: definicoes iniciais
 
 :- op( 900,xfy,'::' ).
+:- dynamic goal/1.
 :- dynamic freguesia/2.
 :- dynamic cliente/2.
 :- dynamic estafeta/3.
@@ -33,7 +34,6 @@ solucoes(T,Q,S) :- findall(T,Q,S).
 %----------------------- Base de Conhecimento  - - - -  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-
 
 %----------------------Representação do Cenário----------------------
 aresta(gualtar,adaufe,5).
@@ -168,6 +168,12 @@ veiculo(3,'Carro').
 inserir(Termo) :- assert(Termo).
 inserir(Termo) :- retract(Termo), !, fail.
 
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+% Remover predicados
+
+remover(Termo) :- retract(Termo).
+remover(Termo) :- assert(Termo), !, fail.
+
 
 %--------------------------------
 % Cálculo dos Custos de Entrega
@@ -206,6 +212,12 @@ registaEncomenda(IdEncomenda, Peso, Volume) :- inserir(encomenda(IdEncomenda, Pe
 
 % Registar Freguesia
 registaFreguesia(Id, Nome) :- inserir(freguesia(Id,Nome)).
+
+% Registar Objetivo
+registaGoal(Freguesia) :- inserir(goal(Freguesia)).
+
+% Remover Objetivo
+removerGoal(Freguesia) :- remover(goal(Freguesia)).
 
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
@@ -401,13 +413,11 @@ cicloK(A,P, K1) :-
     append(P1,[A],P),
     K1 is K + Ki.
 
-adjacente(Nodo, ProxNodo,K) :- aresta(Nodo,ProxNodo,K).
-adjacente(Nodo, ProxNodo,K) :- aresta(ProxNodo,Nodo,K).
 %------------------------------------------------
 %--------------QUERY1----------------------------
 % Gerar os circuitos de entrega, caso existam, que cubram um determinado território (e.g. rua ou freguesia);
 
-gerarCircuitosEntrega(Freguesias,R,L) :- 
+fase2Query1(Freguesias,R,L) :- 
     findall(P,cicloK(gualtar,P,_),S),
     filtraCiclo(Freguesias,S,R),
     length(R,L).
@@ -423,19 +433,86 @@ filtraCiclo(F,[C | Cs], T) :-
     nao(pertenceTodos(F,C)),
     filtraCiclo(F,Cs,T).
 
-%filtraCiclo([gualtar,adaufe],[[gualtar,saovitor,lamacaes,nogueiro,gualtar],[gualtar, adaufe, palmeira, saovicente, se, sjsl, lamacaes, nogueiro, gualtar]],R).
-
 pertenceTodos([],_).
 pertenceTodos([H|T], L) :-
     pertence(H,L),
     pertenceTodos(T,L).
 
-%[gualtar, adaufe, palmeira, saovicente, se, sjsl, lamacaes, nogueiro, gualtar]
-
-    
-    
 
 
+%--------------------------------------------------------------------
+%-----------------------PESQUISAS------------------------------------
+%---------------------------------------------------------------------
+inicial(gualtar).
+
+
+%-------------------------------------------------------------------
+%---------------PROFUNDIDADE PRIMEIRO------------------------------------
+%-------------------------------------------------------------------
+
+adjacente(Nodo,ProxNodo,K):- aresta(Nodo,ProxNodo,K).
+adjacente(Nodo,ProxNodo,K):- aresta(ProxNodo,Nodo,K).
+
+
+resolve_pp(Nodo,Destino,R,C):-
+    registaGoal(Destino),
+    profundidadeprimeiro1(Nodo,[Nodo],Caminho),
+    append([Nodo],Caminho,S),
+    reverse_list(S,CaminhoInverso),
+    removeCabeca(CaminhoInverso,C2),
+    append(S,C2,R),
+    calculaCusto(R,C),
+    removerGoal(Destino).
+
+
+profundidadeprimeiro1(Nodo,_,[]):-
+    goal(Nodo).
+
+profundidadeprimeiro1(Nodo, Historico,[ProxNodo|Caminho]):-
+    adjacente(Nodo,ProxNodo,_),
+    nao(membro(ProxNodo,Historico)),
+    profundidadeprimeiro1(ProxNodo,[ProxNodo|Historico], Caminho).
+
+
+%-------------------------------------------------------------------
+%---------------LARGURA PRIMEIRO------------------------------------
+%-------------------------------------------------------------------
+
+calculaCusto([_],0).
+calculaCusto([H|T],C) :-
+    head(T,Head),
+    adjacente(H,Head,K),
+    calculaCusto(T,C1),
+    C is C1 + K.
+
+
+resolve_largura(Inicio,Destino, S3,C) :-
+    registaGoal(Destino),
+    busca_largura( [ [Inicio] ], R),
+    reverse_list(R,Solucao),
+    removeCabeca(R,S2),
+    append(Solucao,S2,S3),
+    calculaCusto(S3,C),
+    removerGoal(Destino).
+
+busca_largura( [ [N|Caminho] | _], [N|Caminho]):-
+    goal(N).
+
+busca_largura([ [N|Caminho]| Caminhos ], Solucao) :-
+    bagof([M,N| Caminho], (aresta(N,M,_),not(membro(M,[N|Caminho]))) , NovosCaminhos),
+    append(Caminhos, NovosCaminhos, Caminhos1), !,
+    (busca_largura(Caminhos1, Solucao); busca_largura(Caminhos, Solucao)).
+
+%--------------------------------------------------------------------
+% Extensao do predicado que remove a cabeça a uma lista
+removeCabeca([],[]).
+removeCabeca([_|T],T).
+
+%--------------------------------------------------------------------
+% Reverse list
+reverse_list(L,L1):-reverse_list(L,[],L1).
+reverse_list([],ACC,ACC).
+reverse_list([X|L], ACC,L1):- reverse_list(L,[X|ACC],L1).
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Extensao do meta-predicado nao: Questao -> {V,F}
 
