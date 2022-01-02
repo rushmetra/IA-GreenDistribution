@@ -36,28 +36,22 @@ solucoes(T,Q,S) :- findall(T,Q,S).
 
 
 %----------------------Representação do Cenário----------------------
-g( grafo([gualtar,lamacaes,saovicente,saovitor,nogueiro,real,sjsl,espinho,sobreposta,pedralva], % sjsl = sao jose de sao lazaro
-  [aresta(gualtar,adaufe,5),
-   aresta(gualtar,saovitor,2),
-   aresta(gualtar,nogueiro,3),
-   aresta(adaufe,saovicente,3),
-   aresta(adaufe,palmeira,7),
-   aresta(saovitor,saovicente,5),
-   aresta(saovitor,sjsl,3),
-   aresta(saovitor,lamacaes,3),
-   aresta(nogueiro,lamacaes,1),
-   aresta(nogueiro,espinho,4.5),
-   aresta(espinho,sobreposta,3),
-   aresta(sobreposta,pedralva,2),
-   aresta(lamacaes,sjsl,3.5),
-   aresta(sjsl,se,2),
-   aresta(se,real,3),
-   aresta(se,saovicente,4),
-   aresta(real,saovicente,4),
-   aresta(real,palmeira,7),
-   aresta(palmeira,saovicente,4)]
- )).
-
+aresta(gualtar,adaufe,5).
+aresta(gualtar,saovitor,2).
+aresta(gualtar,nogueiro,3).
+aresta(adaufe,saovicente,3).
+aresta(adaufe,palmeira,7).
+aresta(saovitor,saovicente,5).
+aresta(saovitor,sjsl,3).
+aresta(saovitor,lamacaes,3).
+aresta(nogueiro,lamacaes,1).
+aresta(lamacaes,sjsl,3.5).
+aresta(sjsl,se,2).
+aresta(se,real,3).
+aresta(se,saovicente,4).
+aresta(real,saovicente,4).
+aresta(real,palmeira,7).
+aresta(palmeira,saovicente,4).
 
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
@@ -73,11 +67,8 @@ freguesia(4,'São Vicente').
 freguesia(5,'Palmeira').
 freguesia(6,'Sao José de São Lázaro').
 freguesia(7,'Lamaçães').
-freguesia(8,'Espinho').
-freguesia(9,'Sobreposta').
-freguesia(10,'Pedralva').
-freguesia(11,'Sé').
-freguesia(12,'Real').
+freguesia(8,'Sé').
+freguesia(9,'Real').
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Cliente ----------------- - - - - - - - - - -  -  -  -  -   -
@@ -192,9 +183,6 @@ preco_prazo(Prazo,R) :- Prazo >8, R=3.
 busca_peso(IdEnc,R) :- solucoes(Peso,(encomenda(IdEnc, Peso,_)),List),
                         head(List,R).
 
-det_veiculo(Peso,R) :- Peso =<5, R is 1.
-det_veiculo(Peso,R) :- Peso >5, Peso =< 20, R is 2.
-det_veiculo(Peso,R) :- Peso > 20, Peso =< 100, R is 3.
 
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
@@ -361,6 +349,104 @@ query9(data(DD1,MM1,AA1),data(DD2,MM2,AA2),NE,E):-solucoes(D,(entrega(D,_,_,_,_,
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 query10(IdEst,data(DD,MM,AA),R) :- solucoes(P,(entrega(data(DD,MM,AA),_,_,IdEnc,_,IdEst,_,_,_),estafeta(IdEst,_,_),encomenda(IdEnc,P,_)),X1),
                             sum_list(X1,R).
+
+
+
+%------------------------------------------------------------------
+%---------------------------FASE 2---------------------------------
+%------------------------------------------------------------------
+
+% Determinar o veiculo a utilizar com base nos indicadores de produtividade
+det_veiculo(Peso,Prazo,Distancia,R) :- Peso =<5, determinaTempo(1,Distancia,Peso,T0),
+   T0 =< Prazo, R is 1.
+det_veiculo(Peso,Prazo,Distancia,R) :- Peso =<5, determinaTempo(2,Distancia,Peso,T0),
+   T0 =< Prazo, R is 2.
+det_veiculo(Peso,Prazo,Distancia,R) :- Peso =<5, determinaTempo(3,Distancia,Peso,T0),
+   T0 =< Prazo, R is 3.
+
+det_veiculo(Peso,Prazo,Distancia,R) :- Peso >5, Peso =< 20, determinaTempo(2,Distancia,Peso,T1),
+   T1 =< Prazo, R is 2.
+det_veiculo(Peso,Prazo,Distancia,R) :- Peso >5, Peso =< 20, determinaTempo(3,Distancia,Peso,T1),
+   T1 =< Prazo, R is 3.
+
+det_veiculo(Peso,_,_,R) :- Peso > 20, Peso =< 100, R is 3.
+
+
+% Determinar tempo de entrega com base nas restrições
+determinaTempo(Veiculo,Distancia,Peso,T) :-
+Veiculo == 1, T is (Distancia / 10 - (0.7 * Peso)).
+determinaTempo(Veiculo,Distancia,Peso,T) :-
+    Veiculo == 2, T is (Distancia / 35 - (0.5 * Peso)).
+determinaTempo(Veiculo,Distancia,Peso,T) :-
+    Veiculo == 3, T is (Distancia / 25 - (0.1 * Peso)).
+    
+
+
+
+%---------------------------------------------------------------
+%-----------------------QUERIES FASE 2--------------------------
+%---------------------------------------------------------------
+
+caminhoK(A,B,P, K) :- caminhoK1(A,[B],P,K).
+caminhoK1(A,[A|P1],[A|P1],0).
+caminhoK1(A,[Y|P1],P,K1) :- adjacente(X,Y,Ki),
+                            nao(membro(X,[Y|P1])),
+                            caminhoK1(A,[X,Y|P1],P,K),
+                            K1 is K + Ki.
+
+cicloK(A,P, K1) :- 
+    adjacente(A,B,Ki),
+    caminhoK(A,B,P1,K),
+    length(P1,L), L > 1,
+    append(P1,[A],P),
+    K1 is K + Ki.
+
+adjacente(Nodo, ProxNodo,K) :- aresta(Nodo,ProxNodo,K).
+adjacente(Nodo, ProxNodo,K) :- aresta(ProxNodo,Nodo,K).
+%------------------------------------------------
+%--------------QUERY1----------------------------
+% Gerar os circuitos de entrega, caso existam, que cubram um determinado território (e.g. rua ou freguesia);
+
+gerarCircuitosEntrega(Freguesias,R,L) :- 
+    findall(P,cicloK(gualtar,P,_),S),
+    filtraCiclo(Freguesias,S,R),
+    length(R,L).
+    
+
+filtraCiclo(F,[C],[C]):- pertenceTodos(F,C).
+filtraCiclo(F,[C],[[]]) :- nao(pertenceTodos(F,C)).
+filtraCiclo(F, [C | Cs],[C|T]) :-
+    pertenceTodos(F,C),
+    filtraCiclo(F,Cs,T).
+
+filtraCiclo(F,[C | Cs], T) :-
+    nao(pertenceTodos(F,C)),
+    filtraCiclo(F,Cs,T).
+
+%filtraCiclo([gualtar,adaufe],[[gualtar,saovitor,lamacaes,nogueiro,gualtar],[gualtar, adaufe, palmeira, saovicente, se, sjsl, lamacaes, nogueiro, gualtar]],R).
+
+pertenceTodos([],_).
+pertenceTodos([H|T], L) :-
+    pertence(H,L),
+    pertenceTodos(T,L).
+
+%[gualtar, adaufe, palmeira, saovicente, se, sjsl, lamacaes, nogueiro, gualtar]
+
+    
+    
+
+
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+% Extensao do meta-predicado nao: Questao -> {V,F}
+
+nao( Questao ) :-
+    Questao, !, fail.
+nao(_).
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+% Extensao do meta-predicado membro
+membro(X, [X|_]).
+membro(X, [_|Xs]):-
+	membro(X, Xs).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %verificar se uma data é igual
