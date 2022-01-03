@@ -19,7 +19,7 @@
 
 :- op( 900,xfy,'::' ).
 :- dynamic goal/1.
-:- dynamic freguesia/2.
+:- dynamic freguesia/4.
 :- dynamic cliente/2.
 :- dynamic estafeta/3.
 :- dynamic encomenda/3.
@@ -56,18 +56,18 @@ aresta(palmeira,saovicente,4).
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Freguesia ----------------- - - - - - - - - - -  -  -  -  -   -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-% Freguesia: #id, nome -> {V,F}
+% Freguesia: #id, nome, Latitude, Longitude -> {V,F}
 
-freguesia(0,'Gualtar').
-freguesia(1,'Adaufe').
-freguesia(2,'São Vitor').
-freguesia(3,'Nogueiró').
-freguesia(4,'São Vicente').
-freguesia(5,'Palmeira').
-freguesia(6,'Sao José de São Lázaro').
-freguesia(7,'Lamaçães').
-freguesia(8,'Sé').
-freguesia(9,'Real').
+freguesia(0,'Gualtar',41.57082270408355,-8.385132957697323).
+freguesia(1,'Adaufe',41.58822016025725,-8.39769439943325).
+freguesia(2,'São Vitor',41.55811981119368,-8.406098832097905).
+freguesia(3,'Nogueiró',41.55064380159762,-8.388788519075284).
+freguesia(4,'São Vicente',41.55643189968566,-8.423919635155087).
+freguesia(5,'Palmeira',41.59702501943494,-8.434789209553655).
+freguesia(6,'Sao José de São Lázaro',41.550581002256486,-8.41930439867474).
+freguesia(7,'Lamaçães',41.546340875881725,-8.394738304278034).
+freguesia(8,'Sé',41.55367358737278,-8.428914196332162).
+freguesia(9,'Real',41.5589672332343,-8.44476031167318).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Cliente ----------------- - - - - - - - - - -  -  -  -  -   -
@@ -210,7 +210,7 @@ registaEstafeta(IdEstafeta, Pontuacao, Nome) :- inserir(estafeta(IdEstafeta,Pont
 registaEncomenda(IdEncomenda, Peso, Volume) :- inserir(encomenda(IdEncomenda, Peso, Volume)).
 
 % Registar Freguesia
-registaFreguesia(Id, Nome) :- inserir(freguesia(Id,Nome)).
+registaFreguesia(Id, Nome,Latitude,Longitude) :- inserir(freguesia(Id,Nome,Latitude,Longitude)).
 
 % Registar Objetivo
 registaGoal(Freguesia) :- inserir(goal(Freguesia)).
@@ -286,7 +286,7 @@ query4(data(DD,MM,AA),R):- solucoes(Custo,(entrega((data(DD,MM,AA)),_,_,_,_,_,_,
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %---------- 5. Identificar as zonas com maior volume de entregas  -
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-query5(N,R):-solucoes(freguesia(IdF,Nome),(freguesia(IdF,Nome),entrega(_, _, _,_, IdCliente, _, _, _,_),cliente(IdCliente, IdF)),LFreg1),
+query5(N,R):-solucoes(freguesia(IdF,Nome,Latitude,Longitude),(freguesia(IdF,Nome,Latitude,Longitude),entrega(_, _, _,_, IdCliente, _, _, _,_),cliente(IdCliente, IdF)),LFreg1),
             diferentes( LFreg1,LFreg2),
             lista_ocorrencias(LFreg1,LFreg2,Ocorrencias),
             busca(N,Ocorrencias,LFreg2,R).
@@ -515,6 +515,7 @@ busca_largura([ [N|Caminho]| Caminhos ], Solucao) :-
 %-------------------------------------------------------------------
 
 % (23.700042,90.452103) e (23.767968, 90.425657)
+% Em kms
 distance(Lat1, Lon1, Lat2, Lon2, Dis):-
     P is 0.017453292519943295,
     A is (0.5 - cos((Lat2 - Lat1) * P) / 2 + cos(Lat1 * P) * cos(Lat2 * P) * (1 - cos((Lon2 - Lon1) * P)) / 2),
