@@ -83,7 +83,7 @@ cliente(6, 5).
 cliente(7, 2).
 cliente(8, 1).
 cliente(9, 3).
-cliente(10, 2).
+cliente(10, 9).
 cliente(11, 4).
 cliente(12, 0).
 
@@ -382,6 +382,9 @@ det_veiculo(Peso,Prazo,Distancia,R) :- Peso >5, Peso =< 20, determinaTempo(3,Dis
 
 det_veiculo(Peso,_,_,R) :- Peso > 20, Peso =< 100, R is 3.
 
+velocida_veiculo(Id,R) :- Id ==1, R is 10.
+velocida_veiculo(Id,R) :- Id ==2, R is 35.
+velocida_veiculo(Id,R) :- Id ==3, R is 25.
 
 % Determinar tempo de entrega com base nas restrições
 determinaTempo(Veiculo,Distancia,Peso,T) :-
@@ -464,16 +467,26 @@ resolve_pp(Nodo,Destino,R,C):-
     calculaCusto(R,C),
     removerGoal(Destino).
 
-
 profundidadeprimeiro1(Nodo,_,[]):-
     goal(Nodo).
-
 profundidadeprimeiro1(Nodo, Historico,[ProxNodo|Caminho]):-
     adjacente(Nodo,ProxNodo,_),
     nao(membro(ProxNodo,Historico)),
     profundidadeprimeiro1(ProxNodo,[ProxNodo|Historico], Caminho).
 
-
+entrega_encomenta_profundidade(Id,Cam,Dist,Time):-
+    findall((Freg,(Peso,Vei)),(encomenda(Id,Peso,_),entrega(_,_,_,Id,IdC,_,Vei,_,_),cliente(IdC,IdF),freguesia(IdF,Freg,_,_)),S),
+    extrai_primeiro(S,Dest),
+    extrai_segundo(S,Inf),
+    colocaList(Inf,Li),
+    extrai_primeiro(Li,P),
+    extrai_segundo(Li,V),
+    resolve_pp(gualtar,Dest,Cam,Dist),
+    Aux is Dist/2,
+    velocida_veiculo(V,Velo),
+    determinaTempo(V,Aux,P,Time1),
+    Time is Time1+(Aux/Velo).
+    
 %-------------------------------------------------------------------
 %---------------LARGURA PRIMEIRO------------------------------------
 %-------------------------------------------------------------------
@@ -495,23 +508,71 @@ resolve_largura(Inicio,Destino, S3,C) :-
     calculaCusto(S3,C),
     removerGoal(Destino).
 
+
 busca_largura( [ [N|Caminho] | _], [N|Caminho]):-
     goal(N).
-
 busca_largura([ [N|Caminho]| Caminhos ], Solucao) :-
     bagof([M,N| Caminho], (aresta(N,M,_),not(membro(M,[N|Caminho]))) , NovosCaminhos),
     append(Caminhos, NovosCaminhos, Caminhos1), !,
     (busca_largura(Caminhos1, Solucao); busca_largura(Caminhos, Solucao)).
 
+entrega_encomenta_largura(Id,Cam,Dist,Time):-
+    findall((Freg,(Peso,Vei)),(encomenda(Id,Peso,_),entrega(_,_,_,Id,IdC,_,Vei,_,_),cliente(IdC,IdF),freguesia(IdF,Freg,_,_)),S),
+    extrai_primeiro(S,Dest),
+    extrai_segundo(S,Inf),
+    colocaList(Inf,Li),
+    extrai_primeiro(Li,P),
+    extrai_segundo(Li,V),
+    resolve_largura(gualtar,Dest,Cam,Dist),
+    Aux is Dist/2,
+    velocida_veiculo(V,Velo),
+    determinaTempo(V,Aux,P,Time1),
+    Time is Time1+(Aux/Velo).
+
+
+colocaList(A,[A]).
+
 %-------------------------------------------------------------------
 %---------------PESQUISA ITERATIVA EM PROFUNDIDADE------------------
 %-------------------------------------------------------------------
-%-------------------------------------------------------------------
+
+solve_DFID( Node, Destino,Solucao,C) :- 
+    registaGoal(Destino),
+    depthFirstIterativeDeepening(Node, R),
+    reverse_list(R,S1),
+    removeCabeca(R,S2),
+    append(S1,S2,Solucao),
+    calculaCusto(Solucao,C),
+    removerGoal(Destino).
+
+
+path(Node,Node,[Node]). 
+path(FirstNode,LastNode,[LastNode|Path]) :-
+path(FirstNode, OneButLast,Path), 
+adjacente(OneButLast,LastNode,_),
+ \+ member(LastNode,Path). 
+
+ depthFirstIterativeDeepening(Node, Solution) :-
+    path(Node,GoalNode,Solution),
+    goal(GoalNode).
+
+entrega_encomenta_DFID(Id,Cam,Dist,Time):-
+    findall((Freg,(Peso,Vei)),(encomenda(Id,Peso,_),entrega(_,_,_,Id,IdC,_,Vei,_,_),cliente(IdC,IdF),freguesia(IdF,Freg,_,_)),S),
+    extrai_primeiro(S,Dest),
+    extrai_segundo(S,Inf),
+    colocaList(Inf,Li),
+    extrai_primeiro(Li,P),
+    extrai_segundo(Li,V),
+    solve_DFID(gualtar,Dest,Cam,Dist),
+    Aux is Dist/2,
+    velocida_veiculo(V,Velo),
+    determinaTempo(V,Aux,P,Time1),
+    Time is Time1+(Aux/Velo).
 
 
 % PESQUISA INFORMADA
 %-------------------------------------------------------------------
-%---------------ALGORITMO A* (A ESTRELA)------------------------------------
+%---------------ALGORITMO A* (A ESTRELA)----------------------------
 %-------------------------------------------------------------------
 
 solve_astar(Node,Dest ,Path/Cost) :-%adicionar goal
@@ -546,12 +607,27 @@ expand_astar(Dest,Path, ExpPaths) :-
     findall(NewPath, move_astar(Dest,Path,NewPath), ExpPaths).
 
 move_astar(Dest,[Node|Path]/Cost/_, [NextNode,Node|Path]/NewCost/Est) :- 
-    aresta(Node, NextNode, StepCost),
+    adjacente(Node, NextNode, StepCost),
     \+ member(NextNode, Path),
     NewCost is Cost + StepCost,
     distancia_entre_freguesias(NextNode,Dest,Est).
 
+entrega_encomenta_aStar(Id,Cam,Dist,Time):-
+    findall((Freg,(Peso,Vei)),(encomenda(Id,Peso,_),entrega(_,_,_,Id,IdC,_,Vei,_,_),cliente(IdC,IdF),freguesia(IdF,Freg,_,_)),S),
+    extrai_primeiro(S,Dest),
+    extrai_segundo(S,Inf),
+    colocaList(Inf,Li),
+    extrai_primeiro(Li,P),
+    extrai_segundo(Li,V),
+    solve_astar(gualtar,Dest,Cam/Dist),
+    Aux is Dist/2,
+    velocida_veiculo(V,Velo),
+    determinaTempo(V,Aux,P,Time1),
+    Time is Time1+(Aux/Velo).
 
+%-------------------------------------------------------------------
+%----------Predicados que calculam a estima da distancia------------
+%-------------------------------------------------------------------
 distancia_entre_freguesias(NomeFreguesia1,NomeFreguesia2,L):-
     findall((Lat,Long),(freguesia(Id,NomeFreguesia1,Lat,Long)),D1),
     findall((Lat,Long),(freguesia(Id,NomeFreguesia2,Lat,Long)),D2),
