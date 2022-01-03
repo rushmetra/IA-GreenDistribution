@@ -513,32 +513,43 @@ busca_largura([ [N|Caminho]| Caminhos ], Solucao) :-
 %-------------------------------------------------------------------
 %---------------ALGORITMO A* (A ESTRELA)------------------------------------
 %-------------------------------------------------------------------
-%
-%resolve_aestrela(Origem,Destino,CaminhoDistancia/CustoDist) :-
-%    distancia_entre_freguesias(Origem,Destino,EstimaD),
-% 	aestrela_distancia([[Origem]/0/EstimaD],InvCaminho/CustoDist/_),
-%	reverse_list(InvCaminho,CaminhoDistancia).
-%
-%aestrela_distancia(Caminhos,SolucaoCaminho) :-
-%	obtem_melhor_distancia(Caminhos,MelhorCaminho),
-%	seleciona(MelhorCaminho,Caminhos,OutrosCaminhos),
-%	expande_aestrela_distancia(MelhorCaminho,ExpCaminhos),
-%	append(OutrosCaminhos,ExpCaminhos,NovoCaminhos),
-%        aestrela_distancia(NovoCaminhos,SolucaoCaminho).	
-%
-%obtem_melhor_distancia([Caminho],Caminho) :- !.
-%obtem_melhor_distancia([Caminho1/Custo1/Est1,_/Custo2/Est2|Caminhos],MelhorCaminho) :-
-%	Custo1 + Est1 =< Custo2 + Est2,!,
-%	obtem_melhor_distancia([Caminho1/Custo1/Est1|Caminhos],MelhorCaminho). 
-%obtem_melhor_distancia([_|Caminhos],MelhorCaminho) :- 
-%	obtem_melhor_distancia(Caminhos,MelhorCaminho).
-%
-%expande_aestrela_distancia(Caminho,ExpCaminhos) :-
-%    findall(NovoCaminho,adjacente_distancia(Caminho,NovoCaminho),ExpCaminhos).
 
+solve_astar(Node,Dest ,Path/Cost) :-%adicionar goal
+    registaGoal(Dest),
+    distancia_entre_freguesias(Node,Dest,Estimate),
+    astar(Dest,[[Node]/0/Estimate], RevPath/Cost1/_),
+    Cost is 2*Cost1,
+    reverse_list(RevPath, Path1),
+    removeCabeca(RevPath,S2),
+    append(Path1,S2,Path),
+    removerGoal(Dest).
 
+astar(_,Paths, Path) :-
+    get_best(Paths, Path),
+    Path = [Node|_]/_/_,
+    goal(Node).
+astar(Dest,Paths, SolutionPath) :-
+    get_best(Paths, BestPath),
+    seleciona(BestPath, Paths, OtherPaths),
+    expand_astar(Dest,BestPath, ExpPaths),
+    append(OtherPaths, ExpPaths, NewPaths),
+    astar(Dest,NewPaths, SolutionPath).
 
+get_best([Path], Path) :- !.
+get_best([Path1/Cost1/Est1,_/Cost2/Est2|Paths], BestPath) :-
+Cost1 + Est1 =< Cost2 + Est2, !,
+get_best([Path1/Cost1/Est1|Paths], BestPath).
+get_best([_|Paths], BestPath) :-
+get_best(Paths, BestPath).
 
+expand_astar(Dest,Path, ExpPaths) :-
+    findall(NewPath, move_astar(Dest,Path,NewPath), ExpPaths).
+
+move_astar(Dest,[Node|Path]/Cost/_, [NextNode,Node|Path]/NewCost/Est) :- 
+    aresta(Node, NextNode, StepCost),
+    \+ member(NextNode, Path),
+    NewCost is Cost + StepCost,
+    distancia_entre_freguesias(NextNode,Dest,Est).
 
 
 distancia_entre_freguesias(NomeFreguesia1,NomeFreguesia2,L):-
@@ -548,15 +559,10 @@ distancia_entre_freguesias(NomeFreguesia1,NomeFreguesia2,L):-
     extrai_segundo(D1,Long1), extrai_segundo(D2,Long2),
     distance(Lat1,Long1,Lat2,Long2,L).
 
-
-% (23.700042,90.452103) e (23.767968, 90.425657)
-% Em kms
 distance(Lat1, Lon1, Lat2, Lon2, Dis):-
     P is 0.017453292519943295,
     A is (0.5 - cos((Lat2 - Lat1) * P) / 2 + cos(Lat1 * P) * cos(Lat2 * P) * (1 - cos((Lon2 - Lon1) * P)) / 2),
     Dis is (12742 * asin(sqrt(A))).
-
-
 
 %--------------------------------------------------------
 % Extensao do predicado que remove a cabeça a uma lista
