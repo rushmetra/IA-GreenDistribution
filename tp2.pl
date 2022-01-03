@@ -13,6 +13,7 @@
 
 :- set_prolog_flag(discontiguous_warnings, off).
 :- set_prolog_flag(single_var_warnings, off).
+:- set_prolog_flag(answer_write_options,[max_depth(0)]).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % SICStus PROLOG: definicoes iniciais
@@ -85,7 +86,7 @@ cliente(8, 1).
 cliente(9, 3).
 cliente(10, 9).
 cliente(11, 4).
-cliente(12, 0).
+cliente(12, 8).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Estafeta ---------------- - - - - - - - - - -  -  -  -  -   -
@@ -388,14 +389,12 @@ velocida_veiculo(Id,R) :- Id ==3, R is 25.
 
 % Determinar tempo de entrega com base nas restrições
 determinaTempo(Veiculo,Distancia,Peso,T) :-
-Veiculo == 1, T is (Distancia / 10 - (0.7 * Peso)).
+Veiculo == 1, T is (Distancia / (10 - (0.7 * Peso))).
 determinaTempo(Veiculo,Distancia,Peso,T) :-
-    Veiculo == 2, T is (Distancia / 35 - (0.5 * Peso)).
+    Veiculo == 2, T is (Distancia / (35 - (0.5 * Peso))).
 determinaTempo(Veiculo,Distancia,Peso,T) :-
-    Veiculo == 3, T is (Distancia / 25 - (0.1 * Peso)).
+    Veiculo == 3, T is (Distancia / (25 - (0.1 * Peso))).
     
-
-
 
 %---------------------------------------------------------------
 %-----------------------QUERIES FASE 2--------------------------
@@ -474,7 +473,7 @@ profundidadeprimeiro1(Nodo, Historico,[ProxNodo|Caminho]):-
     nao(membro(ProxNodo,Historico)),
     profundidadeprimeiro1(ProxNodo,[ProxNodo|Historico], Caminho).
 
-entrega_encomenta_profundidade(Id,Cam,Dist,Time):-
+entrega_encomenda_profundidade(Id,Cam,Dist,Time):-
     findall((Freg,(Peso,Vei)),(encomenda(Id,Peso,_),entrega(_,_,_,Id,IdC,_,Vei,_,_),cliente(IdC,IdF),freguesia(IdF,Freg,_,_)),S),
     extrai_primeiro(S,Dest),
     extrai_segundo(S,Inf),
@@ -498,25 +497,23 @@ calculaCusto([H|T],C) :-
     calculaCusto(T,C1),
     C is C1 + K.
 
-
 resolve_largura(Inicio,Destino, S3,C) :-
     registaGoal(Destino),
-    busca_largura( [ [Inicio] ], R),
+    bfs2(Destino,[[Inicio]],R),
     reverse_list(R,Solucao),
-    removeCabeca(R,S2),
-    append(Solucao,S2,S3),
+    removeCabeca(Solucao,S2),
+    append(R,S2,S3),
     calculaCusto(S3,C),
     removerGoal(Destino).
 
+bfs2(Dest,[[Dest|T]|_],Cam):- reverse_list([Dest|T],Cam).
+bfs2(Dest,[LA|Outros],Cam):- LA=[Act|_],
+findall([X|LA],
+(Dest\==Act,adjacente(Act,X,_),\+member(X,LA)),Novos),
+append(Outros,Novos,Todos),
+bfs2(Dest,Todos,Cam).
 
-busca_largura( [ [N|Caminho] | _], [N|Caminho]):-
-    goal(N).
-busca_largura([ [N|Caminho]| Caminhos ], Solucao) :-
-    bagof([M,N| Caminho], (aresta(N,M,_),not(membro(M,[N|Caminho]))) , NovosCaminhos),
-    append(Caminhos, NovosCaminhos, Caminhos1), !,
-    (busca_largura(Caminhos1, Solucao); busca_largura(Caminhos, Solucao)).
-
-entrega_encomenta_largura(Id,Cam,Dist,Time):-
+entrega_encomenda_largura(Id,Cam,Dist,Time):-
     findall((Freg,(Peso,Vei)),(encomenda(Id,Peso,_),entrega(_,_,_,Id,IdC,_,Vei,_,_),cliente(IdC,IdF),freguesia(IdF,Freg,_,_)),S),
     extrai_primeiro(S,Dest),
     extrai_segundo(S,Inf),
@@ -556,7 +553,7 @@ adjacente(OneButLast,LastNode,_),
     path(Node,GoalNode,Solution),
     goal(GoalNode).
 
-entrega_encomenta_DFID(Id,Cam,Dist,Time):-
+entrega_encomenda_DFID(Id,Cam,Dist,Time):-
     findall((Freg,(Peso,Vei)),(encomenda(Id,Peso,_),entrega(_,_,_,Id,IdC,_,Vei,_,_),cliente(IdC,IdF),freguesia(IdF,Freg,_,_)),S),
     extrai_primeiro(S,Dest),
     extrai_segundo(S,Inf),
@@ -572,59 +569,107 @@ entrega_encomenta_DFID(Id,Cam,Dist,Time):-
 
 % PESQUISA INFORMADA
 %-------------------------------------------------------------------
-%---------------ALGORITMO A* (A ESTRELA)----------------------------
+%-------------ALGORITMO A* (A ESTRELA) Distancia--------------------
 %-------------------------------------------------------------------
 
-solve_astar(Node,Dest ,Path/Cost) :-%adicionar goal
+solve_astar_Dist(Node,Dest ,Path/Cost) :-
     registaGoal(Dest),
     distancia_entre_freguesias(Node,Dest,Estimate),
-    astar(Dest,[[Node]/0/Estimate], RevPath/Cost1/_),
+    astar_Dist(Dest,[[Node]/0/Estimate], RevPath/Cost1/_),
     Cost is 2*Cost1,
     reverse_list(RevPath, Path1),
     removeCabeca(RevPath,S2),
     append(Path1,S2,Path),
     removerGoal(Dest).
 
-astar(_,Paths, Path) :-
-    get_best(Paths, Path),
+astar_Dist(_,Paths, Path) :-
+    get_best_Dist(Paths, Path),
     Path = [Node|_]/_/_,
     goal(Node).
-astar(Dest,Paths, SolutionPath) :-
-    get_best(Paths, BestPath),
+astar_Dist(Dest,Paths, SolutionPath) :-
+    get_best_Dist(Paths, BestPath),
     seleciona(BestPath, Paths, OtherPaths),
-    expand_astar(Dest,BestPath, ExpPaths),
+    expand_astar_Dist(Dest,BestPath, ExpPaths),
     append(OtherPaths, ExpPaths, NewPaths),
-    astar(Dest,NewPaths, SolutionPath).
+    astar_Dist(Dest,NewPaths, SolutionPath).
 
-get_best([Path], Path) :- !.
-get_best([Path1/Cost1/Est1,_/Cost2/Est2|Paths], BestPath) :-
+get_best_Dist([Path], Path) :- !.
+get_best_Dist([Path1/Cost1/Est1,_/Cost2/Est2|Paths], BestPath) :-
 Cost1 + Est1 =< Cost2 + Est2, !,
-get_best([Path1/Cost1/Est1|Paths], BestPath).
-get_best([_|Paths], BestPath) :-
-get_best(Paths, BestPath).
+get_best_Dist([Path1/Cost1/Est1|Paths], BestPath).
+get_best_Dist([_|Paths], BestPath) :-
+get_best_Dist(Paths, BestPath).
 
-expand_astar(Dest,Path, ExpPaths) :-
-    findall(NewPath, move_astar(Dest,Path,NewPath), ExpPaths).
+expand_astar_Dist(Dest,Path, ExpPaths) :-
+    findall(NewPath, move_astar_Dist(Dest,Path,NewPath), ExpPaths).
 
-move_astar(Dest,[Node|Path]/Cost/_, [NextNode,Node|Path]/NewCost/Est) :- 
+move_astar_Dist(Dest,[Node|Path]/Cost/_, [NextNode,Node|Path]/NewCost/Est) :- 
     adjacente(Node, NextNode, StepCost),
     \+ member(NextNode, Path),
     NewCost is Cost + StepCost,
     distancia_entre_freguesias(NextNode,Dest,Est).
 
-entrega_encomenta_aStar(Id,Cam,Dist,Time):-
+entrega_encomenda_aStar_Dist(Id,Cam,Dist):-
+    findall((Freg),(entrega(_,_,_,Id,IdC,_,_,_,_),cliente(IdC,IdF),freguesia(IdF,Freg,_,_)),S),
+    head(S,Dest),
+    solve_astar_Dist(gualtar,Dest,Cam/Dist).
+
+%-------------------------------------------------------------------
+%---------------ALGORITMO A* (A ESTRELA) Tempo----------------------
+%-------------------------------------------------------------------
+
+solve_astar_Time(Node, Dest,Peso,Veiculo,Path/Cost) :-
+    registaGoal(Dest),
+    distancia_entre_freguesias(Node,Dest,D),
+    determinaTempo(Veiculo,D,Peso,Estimate),
+    astar_Time(Dest,Peso,Veiculo,[[Node]/0/Estimate], RevPath/Cost/_),
+    reverse(RevPath, Path),
+    removerGoal(Dest).
+
+astar_Time(_,_,_,Paths, Path) :-
+    get_best_Time(Paths, Path),
+    Path = [Node|_]/_/_,
+    goal(Node).
+astar_Time(Dest,Peso,Veiculo,Paths, SolutionPath) :-
+    get_best_Time(Paths, BestPath),
+    select(BestPath, Paths, OtherPaths),
+    expand_astar_Time(Dest,Peso,Veiculo,BestPath, ExpPaths),
+    append(OtherPaths, ExpPaths, NewPaths),
+    astar_Time(Dest,Peso,Veiculo,NewPaths, SolutionPath).
+
+get_best_Time([Path], Path) :- !.
+get_best_Time([Path1/Cost1/Est1,_/Cost2/Est2|Paths], BestPath) :-
+Cost1 + Est1 =< Cost2 + Est2, !,
+get_best_Time([Path1/Cost1/Est1|Paths], BestPath).
+get_best_Time([_|Paths], BestPath) :-
+get_best_Time(Paths, BestPath).
+
+expand_astar_Time(Dest,Peso,Veiculo,Path, ExpPaths) :-
+    findall(NewPath, move_astar_Time(Dest,Peso,Veiculo,Path,NewPath), ExpPaths).
+
+move_astar_Time(Dest,Peso,Veiculo,[Node|Path]/Cost/_, [NextNode,Node|Path]/NewCost/Est) :-
+    adjacente(Node, NextNode, Dist),
+    determinaTempo(Veiculo,Dist,Peso,StepCost),
+    \+ member(NextNode, Path),
+    NewCost is Cost + StepCost,
+    distancia_entre_freguesias(Node,Dest,D),
+    determinaTempo(Veiculo,D,Peso,Est).
+
+entrega_encomenda_aStar_Time(Id,Cam,Time):-
     findall((Freg,(Peso,Vei)),(encomenda(Id,Peso,_),entrega(_,_,_,Id,IdC,_,Vei,_,_),cliente(IdC,IdF),freguesia(IdF,Freg,_,_)),S),
     extrai_primeiro(S,Dest),
     extrai_segundo(S,Inf),
     colocaList(Inf,Li),
     extrai_primeiro(Li,P),
     extrai_segundo(Li,V),
-    solve_astar(gualtar,Dest,Cam/Dist),
-    Aux is Dist/2,
+    solve_astar_Time(gualtar,Dest,P,V,Cam1/Time1),
+    reverse_list(Cam1,R),
+    removeCabeca(R,Cam2),
+    append(Cam1,Cam2,Cam),
+    calculaCusto(Cam1,C),
     velocida_veiculo(V,Velo),
-    determinaTempo(V,Aux,P,Time1),
-    Time is Time1+(Aux/Velo).
-
+    Time is Time1+(C/Velo).
+   
 %-------------------------------------------------------------------
 %----------Predicados que calculam a estima da distancia------------
 %-------------------------------------------------------------------
