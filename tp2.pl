@@ -58,16 +58,16 @@ aresta(palmeira,saovicente,4).
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Freguesia: #id, nome, Latitude, Longitude -> {V,F}
 
-freguesia(0,'Gualtar',41.57082270408355,-8.385132957697323).
-freguesia(1,'Adaufe',41.58822016025725,-8.39769439943325).
-freguesia(2,'São Vitor',41.55811981119368,-8.406098832097905).
-freguesia(3,'Nogueiró',41.55064380159762,-8.388788519075284).
-freguesia(4,'São Vicente',41.55643189968566,-8.423919635155087).
-freguesia(5,'Palmeira',41.59702501943494,-8.434789209553655).
-freguesia(6,'Sao José de São Lázaro',41.550581002256486,-8.41930439867474).
-freguesia(7,'Lamaçães',41.546340875881725,-8.394738304278034).
-freguesia(8,'Sé',41.55367358737278,-8.428914196332162).
-freguesia(9,'Real',41.5589672332343,-8.44476031167318).
+freguesia(0,gualtar,41.57082270408355,-8.385132957697323).
+freguesia(1,adaufe,41.58822016025725,-8.39769439943325).
+freguesia(2,saovitor,41.55811981119368,-8.406098832097905).
+freguesia(3,nogueiro,41.55064380159762,-8.388788519075284).
+freguesia(4,saovicente,41.55643189968566,-8.423919635155087).
+freguesia(5,palmeira,41.59702501943494,-8.434789209553655).
+freguesia(6,sjsl,41.550581002256486,-8.41930439867474).
+freguesia(7,lamacaes,41.546340875881725,-8.394738304278034).
+freguesia(8,se,41.55367358737278,-8.428914196332162).
+freguesia(9,real,41.5589672332343,-8.44476031167318).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Cliente ----------------- - - - - - - - - - -  -  -  -  -   -
@@ -513,6 +513,41 @@ busca_largura([ [N|Caminho]| Caminhos ], Solucao) :-
 %-------------------------------------------------------------------
 %---------------ALGORITMO A* (A ESTRELA)------------------------------------
 %-------------------------------------------------------------------
+%
+%resolve_aestrela(Origem,Destino,CaminhoDistancia/CustoDist) :-
+%    distancia_entre_freguesias(Origem,Destino,EstimaD),
+% 	aestrela_distancia([[Origem]/0/EstimaD],InvCaminho/CustoDist/_),
+%	reverse_list(InvCaminho,CaminhoDistancia).
+%
+%aestrela_distancia(Caminhos,SolucaoCaminho) :-
+%	obtem_melhor_distancia(Caminhos,MelhorCaminho),
+%	seleciona(MelhorCaminho,Caminhos,OutrosCaminhos),
+%	expande_aestrela_distancia(MelhorCaminho,ExpCaminhos),
+%	append(OutrosCaminhos,ExpCaminhos,NovoCaminhos),
+%        aestrela_distancia(NovoCaminhos,SolucaoCaminho).	
+%
+%obtem_melhor_distancia([Caminho],Caminho) :- !.
+%obtem_melhor_distancia([Caminho1/Custo1/Est1,_/Custo2/Est2|Caminhos],MelhorCaminho) :-
+%	Custo1 + Est1 =< Custo2 + Est2,!,
+%	obtem_melhor_distancia([Caminho1/Custo1/Est1|Caminhos],MelhorCaminho). 
+%obtem_melhor_distancia([_|Caminhos],MelhorCaminho) :- 
+%	obtem_melhor_distancia(Caminhos,MelhorCaminho).
+%
+%expande_aestrela_distancia(Caminho,ExpCaminhos) :-
+%    findall(NovoCaminho,adjacente_distancia(Caminho,NovoCaminho),ExpCaminhos).
+
+
+
+
+
+
+distancia_entre_freguesias(NomeFreguesia1,NomeFreguesia2,L):-
+    findall((Lat,Long),(freguesia(Id,NomeFreguesia1,Lat,Long)),D1),
+    findall((Lat,Long),(freguesia(Id,NomeFreguesia2,Lat,Long)),D2),
+    extrai_primeiro(D1,Lat1), extrai_primeiro(D2,Lat2),
+    extrai_segundo(D1,Long1), extrai_segundo(D2,Long2),
+    distance(Lat1,Long1,Lat2,Long2,L).
+
 
 % (23.700042,90.452103) e (23.767968, 90.425657)
 % Em kms
@@ -590,6 +625,14 @@ indexOf([_|Tail], Element, Index):-
 head([H],H).
 head([H|_],H).
 
+%------------------------
+% Obtem primeiro elemento dum tuplo 
+extrai_primeiro([(X,_)],X).
+
+%------------------------
+% Obtem segundo 
+extrai_segundo([(_,X)],X).
+
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Concatenar uma lista
 append([ ], L, L).
@@ -618,3 +661,8 @@ removerElemento( [X|L],Y,[X|NL] ) :- X \== Y, removerElemento( L,Y,NL ).
 % Remove o elemento presente num determinado index
 away([_|H],0,H):-!.
 away([G|H],N,[G|L]):- N >= 1, N1 is N - 1,!,away(H,N1,L). 
+
+
+
+seleciona(E,[E|Xs],Xs).
+seleciona(E,[X|Xs],[X|Ys]) :- seleciona(E,Xs,Ys).
