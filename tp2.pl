@@ -514,6 +514,11 @@ busca_largura([ [N|Caminho]| Caminhos ], Solucao) :-
 %---------------ALGORITMO A* (A ESTRELA)------------------------------------
 %-------------------------------------------------------------------
 
+% (23.700042,90.452103) e (23.767968, 90.425657)
+distance(Lat1, Lon1, Lat2, Lon2, Dis):-
+    P is 0.017453292519943295,
+    A is (0.5 - cos((Lat2 - Lat1) * P) / 2 + cos(Lat1 * P) * cos(Lat2 * P) * (1 - cos((Lon2 - Lon1) * P)) / 2),
+    Dis is (12742 * asin(sqrt(A))).
 
 
 
