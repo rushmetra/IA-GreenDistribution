@@ -53,6 +53,13 @@ aresta(real,saovicente,4).
 aresta(real,palmeira,7).
 aresta(palmeira,saovicente,4).
 
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+%-------- Rota ----------------- - - - - - - - - - -  -  -  -  -   -
+%--------------------------------- - - - - - - - - - -  -  -  -  -   -
+
+rota(adaufe,palmeira,real).
+rota(saovitor,saovicente,se).
+rota(nogueiro,lamacaes,sjsl).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 %-------- Freguesia ----------------- - - - - - - - - - -  -  -  -  -   -
@@ -197,7 +204,10 @@ busca_peso(IdEnc,R) :- solucoes(Peso,(encomenda(IdEnc, Peso,_)),List),
 
 % Registar Entrega
 registaEntrega(Data, Prazo, IdE, IdEnc, IdC, IdEst,Pe):-
-            busca_peso(IdEnc,Peso), det_veiculo(Peso,IdVeiculo), 
+            findall((Freg),(entrega(_,_,_,IdEnc,IdC,_,_,_,_),cliente(IdC,IdF),freguesia(IdF,Freg,_,_)),S),
+            head(S,Dest),
+            solve_astar_Dist(gualtar,Dest,_/Dist),
+            busca_peso(IdEnc,Peso), det_veiculo(Peso,Prazo,Dist,IdVeiculo), 
             preco_prazo(Prazo,R1),preco_veiculo(IdVeiculo,R2), C is R1+R2,
             inserir(entrega(Data, Prazo, IdE,IdEnc, IdC, IdEst, IdVeiculo, C,Pe)).
 
@@ -400,10 +410,11 @@ determinaTempo(Veiculo,Distancia,Peso,T) :-
 %-----------------------QUERIES FASE 2--------------------------
 %---------------------------------------------------------------
 
-
 %--------------------------------------------------------------------
 %-----------------------PESQUISAS------------------------------------
 %---------------------------------------------------------------------
+
+
 
 % PESQUISA NAO-INFORMADA
 %-------------------------------------------------------------------
@@ -633,32 +644,62 @@ entrega_encomenda_aStar_Time(Id,Cam,Time):-
 %-----------------Entrega de varias encomendas----------------------
 %-------------------------------------------------------------------
 
-entrega_varias(List,C,D) :- aux_entregas(1,List,C,D,gualtar).
+entrega_varias(List,C,D,Time) :- head(List,Id),
+                                findall(Vei,(entrega(_,_,_,Id,_,_,Vei,_,_)),S),
+                                head(S,V),
+                                verificaVeiculo(List,V),
+                                pesoTotal(List,Peso),
+                                verificaPeso(V,Peso),
+                                findall((Freg),(entrega(_,_,_,Id,IdC,_,_,_,_),cliente(IdC,IdF),freguesia(IdF,Freg,_,_)),S),
+                                head(S,Dest),
+                                solve_astar_Dist(gualtar,Dest,CamReverse/Dist1),
+                                reverse_list(CamReverse,R),
+                                removeCabeca(List,H),
+                                aux_entregas(H,Cam,Dist,T,V,Dest),
+                                determinaTempo(V,Dist1,Peso,T1),
+                                Time is T+T1,
+                                D is Dist+Dist1,
+                                append(R,Cam,C).
 
-aux_entregas(0,[],Cam,Dist,L) :- solve_astar_Dist(L,gualtar,CamReverse/Dist),
+aux_entregas([],Cam,Dist,Time,V,L) :- solve_astar_Dist(L,gualtar,CamReverse/Dist),
                             reverse_list(CamReverse,Cam1),
+                            determinaTempo(V,Dist,0,Time),
                             removeCabeca(Cam1,Cam).
 
-aux_entregas(0,List,C,D,L) :- head(List,Id),
+aux_entregas(List,C,D,Time,V,L) :- head(List,Id),
                             findall((Freg),(entrega(_,_,_,Id,IdC,_,_,_,_),cliente(IdC,IdF),freguesia(IdF,Freg,_,_)),S),
                             head(S,Dest),
                             solve_astar_Dist(L,Dest,CamReverse/Dist),
                             reverse_list(CamReverse,Cam1),
                             removeCabeca(Cam1,Cam),
                             removeCabeca(List,H),
-                            aux_entregas(0,H,R,Distancia,Dest),
+                            aux_entregas(H,R,Distancia,T,V,Dest),
                             append(Cam,R,C),
+                            pesoTotal(List,Peso),
+                            determinaTempo(V,Dist,Peso,T1),
+                            Time is T+T1,
                             D is Dist+Distancia.
 
-aux_entregas(1,List,Cam,D,_) :- head(List,Id),
-                            findall((Freg),(entrega(_,_,_,Id,IdC,_,_,_,_),cliente(IdC,IdF),freguesia(IdF,Freg,_,_)),S),
-                            head(S,Dest),
-                            solve_astar_Dist(gualtar,Dest,CamReverse/Dist1),
-                            reverse_list(CamReverse,R),
-                            removeCabeca(List,H),
-                            aux_entregas(0,H,C,Dist,Dest),
-                            D is Dist+Dist1,
-                            append(R,C,Cam).
+
+verificaVeiculo([Id],V) :- findall(Vei,(entrega(_,_,_,Id,_,_,Vei,_,_)),S),
+                            head(S,Vei),
+                            V =:= Vei.
+verificaVeiculo([Id|H],V):-findall(Vei,(entrega(_,_,_,Id,_,_,Vei,_,_)),S),
+                            head(S,Vei),
+                            V =:= Vei,
+                            verificaVeiculo(H,V).
+
+pesoTotal([Id],Peso) :- findall(P,(encomenda(Id,P,_),entrega(_,_,_,Id,_,_,_,_,_)),S),
+                        head(S,Peso).
+pesoTotal([Id|X],R):- findall(P,(encomenda(Id,P,_),entrega(_,_,_,Id,_,_,_,_,_)),S),
+                        head(S,Peso),
+                        pesoTotal(X,R1),
+                        R is R1+Peso.
+
+verificaPeso(IdV,Peso) :- IdV =:=1, Peso=<5.
+verificaPeso(IdV,Peso) :- IdV =:=2, Peso=<20.
+verificaPeso(IdV,Peso) :- IdV =:=3, Peso=<100.
+
 
    
 %-------------------------------------------------------------------
