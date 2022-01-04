@@ -400,52 +400,10 @@ determinaTempo(Veiculo,Distancia,Peso,T) :-
 %-----------------------QUERIES FASE 2--------------------------
 %---------------------------------------------------------------
 
-caminhoK(A,B,P, K) :- caminhoK1(A,[B],P,K).
-caminhoK1(A,[A|P1],[A|P1],0).
-caminhoK1(A,[Y|P1],P,K1) :- adjacente(X,Y,Ki),
-                            nao(membro(X,[Y|P1])),
-                            caminhoK1(A,[X,Y|P1],P,K),
-                            K1 is K + Ki.
-
-cicloK(A,P, K1) :- 
-    adjacente(A,B,Ki),
-    caminhoK(A,B,P1,K),
-    length(P1,L), L > 1,
-    append(P1,[A],P),
-    K1 is K + Ki.
-
-%------------------------------------------------
-%--------------QUERY1----------------------------
-% Gerar os circuitos de entrega, caso existam, que cubram um determinado território (e.g. rua ou freguesia);
-
-fase2Query1(Freguesias,R,L) :- 
-    findall(P,cicloK(gualtar,P,_),S),
-    filtraCiclo(Freguesias,S,R),
-    length(R,L).
-    
-
-filtraCiclo(F,[C],[C]):- pertenceTodos(F,C).
-filtraCiclo(F,[C],[[]]) :- nao(pertenceTodos(F,C)).
-filtraCiclo(F, [C | Cs],[C|T]) :-
-    pertenceTodos(F,C),
-    filtraCiclo(F,Cs,T).
-
-filtraCiclo(F,[C | Cs], T) :-
-    nao(pertenceTodos(F,C)),
-    filtraCiclo(F,Cs,T).
-
-pertenceTodos([],_).
-pertenceTodos([H|T], L) :-
-    pertence(H,L),
-    pertenceTodos(T,L).
-
-
 
 %--------------------------------------------------------------------
 %-----------------------PESQUISAS------------------------------------
 %---------------------------------------------------------------------
-
-
 
 % PESQUISA NAO-INFORMADA
 %-------------------------------------------------------------------
@@ -575,11 +533,8 @@ entrega_encomenda_DFID(Id,Cam,Dist,Time):-
 solve_astar_Dist(Node,Dest ,Path/Cost) :-
     registaGoal(Dest),
     distancia_entre_freguesias(Node,Dest,Estimate),
-    astar_Dist(Dest,[[Node]/0/Estimate], RevPath/Cost1/_),
+    astar_Dist(Dest,[[Node]/0/Estimate], Path/Cost1/_),
     Cost is 2*Cost1,
-    reverse_list(RevPath, Path1),
-    removeCabeca(RevPath,S2),
-    append(Path1,S2,Path),
     removerGoal(Dest).
 
 astar_Dist(_,Paths, Path) :-
@@ -612,7 +567,11 @@ move_astar_Dist(Dest,[Node|Path]/Cost/_, [NextNode,Node|Path]/NewCost/Est) :-
 entrega_encomenda_aStar_Dist(Id,Cam,Dist):-
     findall((Freg),(entrega(_,_,_,Id,IdC,_,_,_,_),cliente(IdC,IdF),freguesia(IdF,Freg,_,_)),S),
     head(S,Dest),
-    solve_astar_Dist(gualtar,Dest,Cam/Dist).
+    solve_astar_Dist(gualtar,Dest,Cam1/Dist),
+    reverse_list(Cam1,R),
+    removeCabeca(Cam1,Cam2),
+    append(R,Cam2,Cam).
+
 
 %-------------------------------------------------------------------
 %---------------ALGORITMO A* (A ESTRELA) Tempo----------------------
@@ -669,6 +628,38 @@ entrega_encomenda_aStar_Time(Id,Cam,Time):-
     calculaCusto(Cam1,C),
     velocida_veiculo(V,Velo),
     Time is Time1+(C/Velo).
+
+%-------------------------------------------------------------------
+%-----------------Entrega de varias encomendas----------------------
+%-------------------------------------------------------------------
+
+entrega_varias(List,C,D) :- aux_entregas(1,List,C,D,gualtar).
+
+aux_entregas(0,[],Cam,Dist,L) :- solve_astar_Dist(L,gualtar,CamReverse/Dist),
+                            reverse_list(CamReverse,Cam1),
+                            removeCabeca(Cam1,Cam).
+
+aux_entregas(0,List,C,D,L) :- head(List,Id),
+                            findall((Freg),(entrega(_,_,_,Id,IdC,_,_,_,_),cliente(IdC,IdF),freguesia(IdF,Freg,_,_)),S),
+                            head(S,Dest),
+                            solve_astar_Dist(L,Dest,CamReverse/Dist),
+                            reverse_list(CamReverse,Cam1),
+                            removeCabeca(Cam1,Cam),
+                            removeCabeca(List,H),
+                            aux_entregas(0,H,R,Distancia,Dest),
+                            append(Cam,R,C),
+                            D is Dist+Distancia.
+
+aux_entregas(1,List,Cam,D,_) :- head(List,Id),
+                            findall((Freg),(entrega(_,_,_,Id,IdC,_,_,_,_),cliente(IdC,IdF),freguesia(IdF,Freg,_,_)),S),
+                            head(S,Dest),
+                            solve_astar_Dist(gualtar,Dest,CamReverse/Dist1),
+                            reverse_list(CamReverse,R),
+                            removeCabeca(List,H),
+                            aux_entregas(0,H,C,Dist,Dest),
+                            D is Dist+Dist1,
+                            append(R,C,Cam).
+
    
 %-------------------------------------------------------------------
 %----------Predicados que calculam a estima da distancia------------
