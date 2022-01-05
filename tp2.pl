@@ -59,10 +59,10 @@ aresta(palmeira,saovicente,4).
 
 rota(adaufe,palmeira,real).
 rota(saovitor,saovicente,se).
-rota(nogueiro,lamacaes,sjsl).
+rota(nogueiro,lamacaes,sjsl).                   
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-%-------- Freguesia ----------------- - - - - - - - - - -  -  -  -  -   -
+%-------- Freguesia ----------------- - - - - - - - - - -  -  -  -  -  
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Freguesia: #id, nome, Latitude, Longitude -> {V,F}
 
@@ -575,76 +575,27 @@ move_astar_Dist(Dest,[Node|Path]/Cost/_, [NextNode,Node|Path]/NewCost/Est) :-
     NewCost is Cost + StepCost,
     distancia_entre_freguesias(NextNode,Dest,Est).
 
-entrega_encomenda_aStar_Dist(Id,Cam,Dist):-
-    findall((Freg),(entrega(_,_,_,Id,IdC,_,_,_,_),cliente(IdC,IdF),freguesia(IdF,Freg,_,_)),S),
-    head(S,Dest),
-    solve_astar_Dist(gualtar,Dest,Cam1/Dist),
-    reverse_list(Cam1,R),
-    removeCabeca(Cam1,Cam2),
-    append(R,Cam2,Cam).
-
-
-%-------------------------------------------------------------------
-%---------------ALGORITMO A* (A ESTRELA) Tempo----------------------
-%-------------------------------------------------------------------
-
-solve_astar_Time(Node, Dest,Peso,Veiculo,Path/Cost) :-
-    registaGoal(Dest),
-    distancia_entre_freguesias(Node,Dest,D),
-    determinaTempo(Veiculo,D,Peso,Estimate),
-    astar_Time(Dest,Peso,Veiculo,[[Node]/0/Estimate], RevPath/Cost/_),
-    reverse(RevPath, Path),
-    removerGoal(Dest).
-
-astar_Time(_,_,_,Paths, Path) :-
-    get_best_Time(Paths, Path),
-    Path = [Node|_]/_/_,
-    goal(Node).
-astar_Time(Dest,Peso,Veiculo,Paths, SolutionPath) :-
-    get_best_Time(Paths, BestPath),
-    select(BestPath, Paths, OtherPaths),
-    expand_astar_Time(Dest,Peso,Veiculo,BestPath, ExpPaths),
-    append(OtherPaths, ExpPaths, NewPaths),
-    astar_Time(Dest,Peso,Veiculo,NewPaths, SolutionPath).
-
-get_best_Time([Path], Path) :- !.
-get_best_Time([Path1/Cost1/Est1,_/Cost2/Est2|Paths], BestPath) :-
-Cost1 + Est1 =< Cost2 + Est2, !,
-get_best_Time([Path1/Cost1/Est1|Paths], BestPath).
-get_best_Time([_|Paths], BestPath) :-
-get_best_Time(Paths, BestPath).
-
-expand_astar_Time(Dest,Peso,Veiculo,Path, ExpPaths) :-
-    findall(NewPath, move_astar_Time(Dest,Peso,Veiculo,Path,NewPath), ExpPaths).
-
-move_astar_Time(Dest,Peso,Veiculo,[Node|Path]/Cost/_, [NextNode,Node|Path]/NewCost/Est) :-
-    adjacente(Node, NextNode, Dist),
-    determinaTempo(Veiculo,Dist,Peso,StepCost),
-    \+ member(NextNode, Path),
-    NewCost is Cost + StepCost,
-    distancia_entre_freguesias(Node,Dest,D),
-    determinaTempo(Veiculo,D,Peso,Est).
-
-entrega_encomenda_aStar_Time(Id,Cam,Time):-
+entrega_encomenda_aStar(Id,Cam,Dist,Time):-
     findall((Freg,(Peso,Vei)),(encomenda(Id,Peso,_),entrega(_,_,_,Id,IdC,_,Vei,_,_),cliente(IdC,IdF),freguesia(IdF,Freg,_,_)),S),
     extrai_primeiro(S,Dest),
     extrai_segundo(S,Inf),
     colocaList(Inf,Li),
     extrai_primeiro(Li,P),
     extrai_segundo(Li,V),
-    solve_astar_Time(gualtar,Dest,P,V,Cam1/Time1),
-    reverse_list(Cam1,R),
-    removeCabeca(R,Cam2),
-    append(Cam1,Cam2,Cam),
-    calculaCusto(Cam1,C),
-    velocida_veiculo(V,Velo),
-    Time is Time1+(C/Velo).
+    solve_astar_Dist(gualtar,Dest,Cam1/Dist),
+    Aux is Dist/2,
+    determinaTempo(V,Aux,P,T1),
+    determinaTempo(V,Aux,0,T2),
+    reverse_list(Cam1,Cam2),
+    removeCabeca(Cam1,Cam3),
+    append(Cam2,Cam3,Cam),
+    Time is T1+T2.
 
 %-------------------------------------------------------------------
 %-----------------Entrega de varias encomendas----------------------
 %-------------------------------------------------------------------
 
-entrega_varias(List,C,D,Time) :- head(List,Id),
+entrega_varias(List,C,Dist,Time) :- head(List,Id),
                                 findall(Vei,(entrega(_,_,_,Id,_,_,Vei,_,_)),S),
                                 head(S,V),
                                 verificaVeiculo(List,V),
@@ -652,13 +603,10 @@ entrega_varias(List,C,D,Time) :- head(List,Id),
                                 verificaPeso(V,Peso),
                                 findall((Freg),(entrega(_,_,_,Id,IdC,_,_,_,_),cliente(IdC,IdF),freguesia(IdF,Freg,_,_)),Fr),
                                 head(Fr,Dest),
-                                solve_astar_Dist(gualtar,Dest,CamReverse/Dist1),
+                                solve_astar_Dist(gualtar,Dest,CamReverse/_),
                                 reverse_list(CamReverse,R),
                                 removeCabeca(List,H),
-                                aux_entregas(H,Cam,Dist,T,V,Dest),
-                                determinaTempo(V,Dist1,Peso,T1),
-                                Time is T+T1,
-                                D is Dist+Dist1,
+                                aux_entregas(H,Cam,Dist,Time,V,Dest),
                                 append(R,Cam,C).
 
 aux_entregas([],Cam,Dist,Time,V,L) :- solve_astar_Dist(L,gualtar,CamReverse/Dist),
@@ -700,6 +648,42 @@ verificaPeso(IdV,Peso) :- IdV =:=1, Peso=<5.
 verificaPeso(IdV,Peso) :- IdV =:=2, Peso=<20.
 verificaPeso(IdV,Peso) :- IdV =:=3, Peso=<100.
 
+%-------------------------------------------------------------------
+%----------Entregas de circuito-------------------------------------
+%-------------------------------------------------------------------
+
+entregas_Norte(R) :- findall(IdC,(entrega(_,_,_,_,IdC,_,_,_,_),cliente(IdC,1)),L1),
+                findall(IdC,(entrega(_,_,_,_,IdC,_,_,_,_),cliente(IdC,5)),L2),
+                findall(IdC,(entrega(_,_,_,_,IdC,_,_,_,_),cliente(IdC,9)),L3),
+                comprimento(L1,R1), comprimento(L2,R2), comprimento(L3,R3), R is R1+R2+R3.
+
+entregas_Centro(R) :- findall(IdC,(entrega(_,_,_,_,IdC,_,_,_,_),cliente(IdC,2)),L1),
+                findall(IdC,(entrega(_,_,_,_,IdC,_,_,_,_),cliente(IdC,4)),L2),
+                findall(IdC,(entrega(_,_,_,_,IdC,_,_,_,_),cliente(IdC,8)),L3),
+                comprimento(L1,R1), comprimento(L2,R2), comprimento(L3,R3), R is R1+R2+R3.
+
+entregas_Sul(R) :- findall(IdC,(entrega(_,_,_,_,IdC,_,_,_,_),cliente(IdC,3)),L1),
+                findall(IdC,(entrega(_,_,_,_,IdC,_,_,_,_),cliente(IdC,7)),L2),
+                findall(IdC,(entrega(_,_,_,_,IdC,_,_,_,_),cliente(IdC,6)),L3),
+                comprimento(L1,R1), comprimento(L2,R2), comprimento(L3,R3), R is R1+R2+R3.
+
+circuito_maior_numero_entregas(Zone) :-entregas_Norte(R1),
+                                    entregas_Centro(R2),
+                                    entregas_Sul(R3),
+                                    det_Zone(R1,R2,R3,Zone).
+                                    
+                                    
+
+det_Zone(R1,R2,R3,Zone):- det_Max(R1,R2,R3,R4),
+                        R4 =:=R1, Zone = 'Circuito Norte'.
+det_Zone(R1,R2,R3,Zone):- det_Max(R1,R2,R3,R4),
+                        R4 =:=R2, Zone = 'Circuito Centro'.
+det_Zone(R1,R2,R3,Zone):- det_Max(R1,R2,R3,R4),
+                        R4 =:=R3, Zone = 'Circuito Sul'.
+
+det_Max(R1,R2,R3,R) :- maximo(R1,R2,X),
+                        maximo(R3,X,R).
+
 
    
 %-------------------------------------------------------------------
@@ -722,6 +706,9 @@ distance(Lat1, Lon1, Lat2, Lon2, Dis):-
 removeCabeca([],[]).
 removeCabeca([_|T],T).
 
+%--------------------------------------------------------------------
+% Maximo de dois numeros
+maximo(X,Y,Z) :- Z is max(X,Y) .
 %--------------------------------------------------------------------
 % Reverse list
 reverse_list(L,L1):-reverse_list(L,[],L1).
@@ -820,8 +807,6 @@ removerElemento( [X|L],Y,[X|NL] ) :- X \== Y, removerElemento( L,Y,NL ).
 % Remove o elemento presente num determinado index
 away([_|H],0,H):-!.
 away([G|H],N,[G|L]):- N >= 1, N1 is N - 1,!,away(H,N1,L). 
-
-
 
 seleciona(E,[E|Xs],Xs).
 seleciona(E,[X|Xs],[X|Ys]) :- seleciona(E,Xs,Ys).
