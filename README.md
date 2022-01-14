@@ -3,7 +3,7 @@
 
 ## Group members  
 
-[Daniel Azevedo](https://www.github.com/danieltazevedo) (danieltazevedo)
-[Rodrigo Rodrigues](https://www.github.com/webst2r)  (webst2r)
-[Guilherme Monteiro](https://www.github.com/rushmetra) (rushmetra)
+[Daniel Azevedo](https://www.github.com/danieltazevedo)  
+[Rodrigo Rodrigues](https://www.github.com/webst2r)  
+[Guilherme Monteiro](https://www.github.com/rushmetra)
 
