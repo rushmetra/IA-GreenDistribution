@@ -1,5 +1,5 @@
 # Artificial Intelligence - Project (21/22)  
-Phase 1: Knowledge and reasoning representation system capable of characterizing a universe of speech in the area
+Phase 1: Knowledge and reasoning representation system capable of characterizing a universe of speech in the area.  
 Phase 2: System for recommending parcel delivery circuits for the case study.  
 
 ## Artificial Intelligence Project
