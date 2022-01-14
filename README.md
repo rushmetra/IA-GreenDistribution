@@ -10,3 +10,7 @@ Phase 2: System for recommending parcel delivery circuits for the case study.
 
 ## Presentation
 [Prezi](https://prezi.com/view/mqNZUUz1fvnHQadV89Dz/)
+
+## Compilation:
+swipl -s <filename>
+
