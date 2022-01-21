@@ -2,7 +2,7 @@
 Phase 1: Knowledge and reasoning representation system capable of characterizing a universe of speech in the area of parcel distribution logistics.  
 Phase 2: System for recommending parcel delivery circuits for the case study.  
 
-## Final grade: 
+## Final grade: 15
 ## Group members  
 
 [Daniel Azevedo](https://www.github.com/danieltazevedo)  
